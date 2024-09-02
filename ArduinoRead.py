@@ -3,10 +3,10 @@ import time
 import json
 
 # Initialize the list to store data
-MQ2Data = []
+MQSensorData = []
 
 
-def load_data_from_file(filename="mq2data.json"):
+def load_data_from_file(filename="MQSensorData.json"):
     try:
         with open(filename, "r") as f:
             return json.load(f)
@@ -14,46 +14,80 @@ def load_data_from_file(filename="mq2data.json"):
         return []
 
 
-def save_data_to_file(data, filename="mq2data.json"):
+def save_data_to_file(data, filename="MQSensorData.json"):
     with open(filename, "w") as f:
-        json.dump(data, f)
+        json.dump(data, f, indent=4)
 
 
-def read_serial_data(port="COM3", baudrate=9600, save_interval=1):
-    ser = serial.Serial(port, baudrate)
+def parse_sensor_data(line, port):
+    try:
+        data_dict = {}
+        sensors = line.split(",")
+        if port == "COM5":
+            data_dict = {
+                "MQ-4": sensors[0].split(":")[1],  # COM5 A0
+                "MQ-7": sensors[1].split(":")[1],  # COM5 A1
+                "MQ-2": sensors[2].split(":")[1],  # COM5 A2
+                "MQ-135": sensors[3].split(":")[1],  # COM5 A3
+                "MQ-8": sensors[4].split(":")[1],  # COM5 A4
+            }
+        elif port == "COM3":
+            data_dict = {
+                "MQ-6": sensors[0].split(":")[1],  # COM3 A0
+                "MQ-9": sensors[1].split(":")[1],  # COM3 A1
+                "MQ-3": sensors[2].split(":")[1],  # COM3 A2
+                "MQ-5": sensors[3].split(":")[1],  # COM3 A3
+            }
+        return data_dict
+    except IndexError:
+        print(f"Error: Line format incorrect from {port}: {line}")
+        return None
+
+
+def read_serial_data(ports=["COM5", "COM3"], baudrate=9600, save_interval=1):
+    ser1 = serial.Serial(ports[0], baudrate)  # COM5
+    ser2 = serial.Serial(ports[1], baudrate)  # COM3
     time.sleep(2)  # Allow some time for the connection to establish
 
     entry_count = 0  # Counter for entries to manage save interval
 
     try:
         while True:
-            if ser.in_waiting > 0:
-                line = ser.readline().decode("utf-8").rstrip()
-                data = line.split(",")
-                timestamp = time.strftime("%Y-%m-%d %H:%M:%S")  # Get current time
+            if ser1.in_waiting > 0 and ser2.in_waiting > 0:
+                line1 = ser1.readline().decode("utf-8").rstrip()
+                line2 = ser2.readline().decode("utf-8").rstrip()
 
-                # Append data and timestamp to the list
-                MQ2Data.append((timestamp, data))
-                print(MQ2Data[-1])  # Print the latest entry to verify
+                data1 = parse_sensor_data(line1, ports[0])
+                data2 = parse_sensor_data(line2, ports[1])
 
-                # Increment the entry counter
-                entry_count += 1
+                if data1 and data2:
+                    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")  # Get current time
+                    sensor_data = {"timestamp": timestamp}
+                    sensor_data.update(data1)
+                    sensor_data.update(data2)
 
-                # Save data to file at the specified interval
-                if entry_count >= save_interval:
-                    save_data_to_file(MQ2Data)
-                    entry_count = 0  # Reset the counter
+                    MQSensorData.append(sensor_data)
+                    print(MQSensorData[-1])  # Print the latest entry to verify
+
+                    # Increment the entry counter
+                    entry_count += 1
+
+                    # Save data to file at the specified interval
+                    if entry_count >= save_interval:
+                        save_data_to_file(MQSensorData)
+                        entry_count = 0  # Reset the counter
 
     except KeyboardInterrupt:
         print("Exiting...")
     except Exception as e:
         print(f"Error: {e}")
     finally:
-        ser.close()
-        save_data_to_file(MQ2Data)  # Ensure data is saved when exiting
+        ser1.close()
+        ser2.close()
+        save_data_to_file(MQSensorData)  # Ensure data is saved when exiting
 
 
 if __name__ == "__main__":
     # Load existing data
-    MQ2Data = load_data_from_file()
-    read_serial_data(port="COM3", baudrate=9600)
+    MQSensorData = load_data_from_file()
+    read_serial_data(ports=["COM5", "COM3"], baudrate=9600)
