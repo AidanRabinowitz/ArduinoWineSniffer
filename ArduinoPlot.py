@@ -74,13 +74,13 @@ if __name__ == "__main__":
     # Create empty data series
     x_data = []
     y_data_dict = {
-        "mq3": [],
-        "mq135": [],
+        "MQ3": [],
+        "MQ135": [],
         "MQ8": [],
         "MQ5": [],
         "MQ7": [],
-        "mq4": [],
-        "mq6": [],
+        "MQ4": [],
+        "MQ6": [],
         "MQ2": [],
         "MQ9": [],
     }

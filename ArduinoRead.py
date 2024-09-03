@@ -38,7 +38,7 @@ def parse_sensor_data(line, port):
     try:
         data_dict = {}
         sensors = line.split(",")
-        if port == "COM3":
+        if port == "COM4":
             data_dict = {
                 "MQ3": sensors[0].split(":")[1],  # COM3 A0
                 "MQ135": sensors[1].split(":")[1],  # COM3 A1
@@ -46,7 +46,7 @@ def parse_sensor_data(line, port):
                 "MQ5": sensors[3].split(":")[1],  # COM3 A3
                 "MQ7": sensors[4].split(":")[1],  # COM3 A4
             }
-        elif port == "COM5":
+        elif port == "COM3":
             data_dict = {
                 "MQ4": sensors[0].split(":")[1],  # COM5 A0
                 "MQ6": sensors[1].split(":")[1],  # COM5 A1
@@ -59,7 +59,7 @@ def parse_sensor_data(line, port):
         return None
 
 
-def read_serial_data(ports=["COM3", "COM5"], baudrate=9600, save_interval=1):
+def read_serial_data(ports=["COM4", "COM3"], baudrate=9600, save_interval=1):
     ser1 = serial.Serial(ports[0], baudrate)  # COM3
     ser2 = serial.Serial(ports[1], baudrate)  # COM5
     time.sleep(2)  # Allow some time for the connection to establish
@@ -109,4 +109,4 @@ def read_serial_data(ports=["COM3", "COM5"], baudrate=9600, save_interval=1):
 if __name__ == "__main__":
     # Load existing data
     MQSensorData = load_data_from_file()
-    read_serial_data(ports=["COM3", "COM5"], baudrate=9600)
+    read_serial_data(ports=["COM4", "COM3"], baudrate=9600)
