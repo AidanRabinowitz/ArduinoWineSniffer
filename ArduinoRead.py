@@ -40,16 +40,16 @@ def parse_sensor_data(line, port):
         sensors = line.split(",")
         if port == "COM3":
             data_dict = {
-                "mq3": sensors[0].split(":")[1],  # COM3 A0
-                "mq135": sensors[1].split(":")[1],  # COM3 A1
+                "MQ3": sensors[0].split(":")[1],  # COM3 A0
+                "MQ135": sensors[1].split(":")[1],  # COM3 A1
                 "MQ8": sensors[2].split(":")[1],  # COM3 A2
                 "MQ5": sensors[3].split(":")[1],  # COM3 A3
                 "MQ7": sensors[4].split(":")[1],  # COM3 A4
             }
         elif port == "COM5":
             data_dict = {
-                "mq4": sensors[0].split(":")[1],  # COM5 A0
-                "mq6": sensors[1].split(":")[1],  # COM5 A1
+                "MQ4": sensors[0].split(":")[1],  # COM5 A0
+                "MQ6": sensors[1].split(":")[1],  # COM5 A1
                 "MQ2": sensors[2].split(":")[1],  # COM5 A2
                 "MQ9": sensors[3].split(":")[1],  # COM5 A3
             }
