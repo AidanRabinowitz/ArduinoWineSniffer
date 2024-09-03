@@ -19,13 +19,13 @@ def save_data_to_file(data, filename="MQSensorData.csv"):
     with open(filename, "w", newline="") as f:
         fieldnames = [
             "timestamp",
-            "mq3",
-            "mq135",
+            "MQ3",
+            "MQ135",
             "MQ8",
             "MQ5",
             "MQ7",
-            "mq4",
-            "mq6",
+            "MQ4",
+            "MQ6",
             "MQ2",
             "MQ9",
         ]
@@ -76,7 +76,8 @@ def read_serial_data(ports=["COM3", "COM5"], baudrate=9600, save_interval=1):
                 data2 = parse_sensor_data(line2, ports[1])
 
                 if data1 and data2:
-                    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")  # Get current time
+                    timestamp = time.strftime(
+                        "%Y-%m-%d %H:%M:%S")  # Get current time
                     sensor_data = {"timestamp": timestamp}
                     sensor_data.update(data1)
                     sensor_data.update(data2)
@@ -92,7 +93,8 @@ def read_serial_data(ports=["COM3", "COM5"], baudrate=9600, save_interval=1):
                         save_data_to_file(MQSensorData)
                         entry_count = 0  # Reset the counter
 
-                time.sleep(1)  # Wait 1 seconds before reading the next set of data
+                # Wait 1 seconds before reading the next set of data
+                time.sleep(1)
 
     except KeyboardInterrupt:
         print("Exiting...")
