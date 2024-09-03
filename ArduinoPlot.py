@@ -1,54 +1,92 @@
-import json
+import datetime as dt
+import csv
+import matplotlib.animation as animation
 import matplotlib.pyplot as plt
-from datetime import datetime
 
 
-def load_data_from_file(filename="MQSensorData.json"):
+def load_data_from_file(filename="MQSensorData.csv"):
+    """Load data from the CSV file."""
     try:
         with open(filename, "r") as f:
-            return json.load(f)
+            reader = csv.DictReader(f)
+            return list(reader)
     except FileNotFoundError:
         print(f"Error: The file {filename} was not found.")
         return []
 
 
-def plot_sensor_data(data):
-    timestamps = []
-    sensor_values = {
-        "MQ-4": [],
-        "MQ-7": [],
-        "MQ-2": [],
-        "MQ-135": [],
-        "MQ-8": [],
-        "MQ-6": [],
-        "MQ-9": [],
-        "MQ-3": [],
-        "MQ-5": [],
-    }
+def animate(frame, xs, ys_dict):
+    """Function called periodically by Matplotlib as an animation."""
+    data = load_data_from_file()
+    if data:
+        latest_entry = data[-1]
+        try:
+            timestamp = dt.datetime.strptime(
+                latest_entry["timestamp"], "%Y-%m-%d %H:%M:%S"
+            )
+            # Append timestamp
+            xs.append(timestamp)
 
-    # Extract timestamps and sensor values from data
-    for entry in data:
-        timestamps.append(datetime.strptime(entry["timestamp"], "%Y-%m-%d %H:%M:%S"))
-        for sensor in sensor_values.keys():
-            sensor_values[sensor].append(int(entry[sensor]))
+            # Update sensor readings
+            for sensor in ys_dict.keys():
+                value_str = latest_entry.get(sensor)
+                if value_str is not None:
+                    try:
+                        value = float(value_str)
+                    except ValueError:
+                        value = None
+                else:
+                    value = None
 
-    # Plot each sensor's data
-    fig, axs = plt.subplots(len(sensor_values), 1, figsize=(10, 15), sharex=True)
-    fig.suptitle("MQ Sensor Readings Over Time")
+                # Only append valid values
+                if value is not None:
+                    ys_dict[sensor].append(value)
 
-    for i, (sensor, values) in enumerate(sensor_values.items()):
-        axs[i].plot(timestamps, values, label=sensor)
-        axs[i].set_ylabel(sensor)
-        axs[i].legend(loc="upper right")
-        axs[i].grid(True)
+        except ValueError:
+            print(f"Skipping entry due to invalid data: {latest_entry}")
 
-    axs[-1].set_xlabel("Time")
-    plt.xticks(rotation=45)
-    plt.tight_layout(rect=[0, 0, 1, 0.96])
-    plt.show()
+    # Limit x and y lists to the more recent items
+    size_limit = 20
+    xs = xs[-size_limit:]
+    for sensor in ys_dict.keys():
+        ys_dict[sensor] = ys_dict[sensor][-size_limit:]
+
+    # Draw x and y lists
+    ax.clear()
+    for sensor, ys in ys_dict.items():
+        if ys:  # Only plot if there is data
+            ax.plot(xs, ys, label=sensor)
+
+    # (Re)Format plot
+    plt.grid()
+    plt.xticks(rotation=45, ha="right")
+    plt.subplots_adjust(bottom=0.30)
+    plt.title("Sensor Data over Time")
+    plt.ylabel("Sensor Reading")
+    plt.xlabel("Time")
+    plt.legend()
 
 
 if __name__ == "__main__":
-    data = load_data_from_file()
-    if data:
-        plot_sensor_data(data)
+    # Create figure
+    fig, ax = plt.subplots()
+
+    # Create empty data series
+    x_data = []
+    y_data_dict = {
+        "mq3": [],
+        "mq135": [],
+        "MQ8": [],
+        "MQ5": [],
+        "MQ7": [],
+        "mq4": [],
+        "mq6": [],
+        "MQ2": [],
+        "MQ9": [],
+    }
+
+    # Set up plot to call animate() function periodically
+    ani = animation.FuncAnimation(
+        fig, animate, fargs=(x_data, y_data_dict), interval=1000
+    )
+    plt.show()

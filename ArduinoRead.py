@@ -1,42 +1,57 @@
 import serial
 import time
-import json
+import csv
 
 # Initialize the list to store data
 MQSensorData = []
 
 
-def load_data_from_file(filename="MQSensorData.json"):
+def load_data_from_file(filename="MQSensorData.csv"):
     try:
         with open(filename, "r") as f:
-            return json.load(f)
+            reader = csv.DictReader(f)
+            return list(reader)
     except FileNotFoundError:
         return []
 
 
-def save_data_to_file(data, filename="MQSensorData.json"):
-    with open(filename, "w") as f:
-        json.dump(data, f, indent=4)
+def save_data_to_file(data, filename="MQSensorData.csv"):
+    with open(filename, "w", newline="") as f:
+        fieldnames = [
+            "timestamp",
+            "mq3",
+            "mq135",
+            "MQ8",
+            "MQ5",
+            "MQ7",
+            "mq4",
+            "mq6",
+            "MQ2",
+            "MQ9",
+        ]
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(data)
 
 
 def parse_sensor_data(line, port):
     try:
         data_dict = {}
         sensors = line.split(",")
-        if port == "COM5":
+        if port == "COM3":
             data_dict = {
-                "MQ-4": sensors[0].split(":")[1],  # COM5 A0
-                "MQ-7": sensors[1].split(":")[1],  # COM5 A1
-                "MQ-2": sensors[2].split(":")[1],  # COM5 A2
-                "MQ-135": sensors[3].split(":")[1],  # COM5 A3
-                "MQ-8": sensors[4].split(":")[1],  # COM5 A4
+                "mq3": sensors[0].split(":")[1],  # COM3 A0
+                "mq135": sensors[1].split(":")[1],  # COM3 A1
+                "MQ8": sensors[2].split(":")[1],  # COM3 A2
+                "MQ5": sensors[3].split(":")[1],  # COM3 A3
+                "MQ7": sensors[4].split(":")[1],  # COM3 A4
             }
-        elif port == "COM3":
+        elif port == "COM5":
             data_dict = {
-                "MQ-6": sensors[0].split(":")[1],  # COM3 A0
-                "MQ-9": sensors[1].split(":")[1],  # COM3 A1
-                "MQ-3": sensors[2].split(":")[1],  # COM3 A2
-                "MQ-5": sensors[3].split(":")[1],  # COM3 A3
+                "mq4": sensors[0].split(":")[1],  # COM5 A0
+                "mq6": sensors[1].split(":")[1],  # COM5 A1
+                "MQ2": sensors[2].split(":")[1],  # COM5 A2
+                "MQ9": sensors[3].split(":")[1],  # COM5 A3
             }
         return data_dict
     except IndexError:
@@ -44,9 +59,9 @@ def parse_sensor_data(line, port):
         return None
 
 
-def read_serial_data(ports=["COM5", "COM3"], baudrate=9600, save_interval=1):
-    ser1 = serial.Serial(ports[0], baudrate)  # COM5
-    ser2 = serial.Serial(ports[1], baudrate)  # COM3
+def read_serial_data(ports=["COM3", "COM5"], baudrate=9600, save_interval=1):
+    ser1 = serial.Serial(ports[0], baudrate)  # COM3
+    ser2 = serial.Serial(ports[1], baudrate)  # COM5
     time.sleep(2)  # Allow some time for the connection to establish
 
     entry_count = 0  # Counter for entries to manage save interval
@@ -77,6 +92,8 @@ def read_serial_data(ports=["COM5", "COM3"], baudrate=9600, save_interval=1):
                         save_data_to_file(MQSensorData)
                         entry_count = 0  # Reset the counter
 
+                time.sleep(1)  # Wait 1 seconds before reading the next set of data
+
     except KeyboardInterrupt:
         print("Exiting...")
     except Exception as e:
@@ -90,4 +107,4 @@ def read_serial_data(ports=["COM5", "COM3"], baudrate=9600, save_interval=1):
 if __name__ == "__main__":
     # Load existing data
     MQSensorData = load_data_from_file()
-    read_serial_data(ports=["COM5", "COM3"], baudrate=9600)
+    read_serial_data(ports=["COM3", "COM5"], baudrate=9600)
