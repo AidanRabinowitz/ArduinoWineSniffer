@@ -28,6 +28,10 @@ def save_data_to_file(data, filename="MQSensorData.csv"):
             "MQ6",
             "MQ2",
             "MQ9",
+            "BMPTemperature",
+            "Pressure(Pa)",
+            "DHTTemperature",
+            "Humidity",
         ]
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
@@ -38,7 +42,7 @@ def parse_sensor_data(line, port):
     try:
         data_dict = {}
         sensors = line.split(",")
-        if port == "COM4":
+        if port == "COM3":
             data_dict = {
                 "MQ3": sensors[0].split(":")[1],  # COM3 A0
                 "MQ135": sensors[1].split(":")[1],  # COM3 A1
@@ -46,12 +50,16 @@ def parse_sensor_data(line, port):
                 "MQ5": sensors[3].split(":")[1],  # COM3 A3
                 "MQ7": sensors[4].split(":")[1],  # COM3 A4
             }
-        elif port == "COM3":
+        elif port == "COM5":
             data_dict = {
                 "MQ4": sensors[0].split(":")[1],  # COM5 A0
                 "MQ6": sensors[1].split(":")[1],  # COM5 A1
                 "MQ2": sensors[2].split(":")[1],  # COM5 A2
                 "MQ9": sensors[3].split(":")[1],  # COM5 A3
+                "BMPTemperature": sensors[4].split(":")[1],  # COM5 A3
+                "Pressure(Pa)": sensors[5].split(":")[1],  # COM5 A3
+                "DHTTemperature": sensors[6].split(":")[1],  # COM5 A3
+                "Humidity": sensors[7].split(":")[1],  # COM5 A3
             }
         return data_dict
     except IndexError:
@@ -59,7 +67,7 @@ def parse_sensor_data(line, port):
         return None
 
 
-def read_serial_data(ports=["COM4", "COM3"], baudrate=9600, save_interval=1):
+def read_serial_data(ports=["COM5", "COM3"], baudrate=9600, save_interval=1):
     ser1 = serial.Serial(ports[0], baudrate)  # COM3
     ser2 = serial.Serial(ports[1], baudrate)  # COM5
     time.sleep(2)  # Allow some time for the connection to establish
@@ -76,8 +84,7 @@ def read_serial_data(ports=["COM4", "COM3"], baudrate=9600, save_interval=1):
                 data2 = parse_sensor_data(line2, ports[1])
 
                 if data1 and data2:
-                    timestamp = time.strftime(
-                        "%Y-%m-%d %H:%M:%S")  # Get current time
+                    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")  # Get current time
                     sensor_data = {"timestamp": timestamp}
                     sensor_data.update(data1)
                     sensor_data.update(data2)
@@ -109,4 +116,4 @@ def read_serial_data(ports=["COM4", "COM3"], baudrate=9600, save_interval=1):
 if __name__ == "__main__":
     # Load existing data
     MQSensorData = load_data_from_file()
-    read_serial_data(ports=["COM4", "COM3"], baudrate=9600)
+    read_serial_data(ports=["COM5", "COM3"], baudrate=9600)
