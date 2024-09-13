@@ -27,7 +27,7 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 
 # Load your data
-data = pd.read_csv("MQSensorData_updated.csv")
+data = pd.read_csv("ML\MQSensorData_updated.csv")
 
 # Separate features and target
 X = data.iloc[:, :-1].values  # All columns except the last one (sensor readings)
@@ -103,4 +103,4 @@ def evaluate_model(model, data_loader):
 
 
 test_accuracy = evaluate_model(model, test_loader)
-print(f"Test Accuracy: {test_accuracy:.4f}")
+print(f"Test Accuracy: {test_accuracy:.4f} How do you like that accuracy")
