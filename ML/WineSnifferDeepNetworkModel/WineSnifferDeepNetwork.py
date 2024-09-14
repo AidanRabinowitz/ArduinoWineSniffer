@@ -11,7 +11,7 @@ from sklearn.preprocessing import OneHotEncoder
 import seaborn as sns
 
 # read data and apply one-hot encoding
-data = pd.read_csv("ML\WineCSVs\TestCSV.csv", header=0)
+data = pd.read_csv("ML\WineCSVs\TrainCSV.csv", header=0)
 
 X = data.iloc[:, 1:10]
 y = data.iloc[:, [14]]
@@ -54,7 +54,7 @@ loss_fn = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # prepare model and training parameters
-n_epochs = 20
+n_epochs = 200
 batch_size = 5
 batches_per_epoch = len(X_train) // batch_size
 
@@ -109,6 +109,9 @@ for epoch in range(n_epochs):
 
     # Restore best model
 model.load_state_dict(best_weights)
+
+# Save the trained model for later use
+torch.save(model.state_dict(), "wine_model.pth")
 
 # Plot the loss and accuracy
 plt.plot(train_loss_hist, label="train")
