@@ -11,10 +11,10 @@ from sklearn.preprocessing import OneHotEncoder
 import seaborn as sns
 
 # read data and apply one-hot encoding
-data = pd.read_csv("ML\Student_performance_data.csv", header=0)
+data = pd.read_csv("ML\WineCSVs\TestCSV.csv", header=0)
 
-X = data.iloc[:, 1:-1]
-y = data.iloc[:, [11]]
+X = data.iloc[:, 1:10]
+y = data.iloc[:, [14]]
 ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False).fit(y)
 y = ohe.transform(y)
 

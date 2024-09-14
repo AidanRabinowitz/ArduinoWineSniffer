@@ -6,7 +6,7 @@ import csv
 MQSensorData = []
 
 
-def load_data_from_file(filename="MQSensorData.csv"):
+def load_data_from_file(filename="MQSensorDataMoscatoKWV.csv"):
     try:
         with open(filename, "r") as f:
             reader = csv.DictReader(f)
@@ -15,7 +15,7 @@ def load_data_from_file(filename="MQSensorData.csv"):
         return []
 
 
-def save_data_to_file(data, filename="MQSensorData.csv"):
+def save_data_to_file(data, filename="MQSensorDataMoscatoKWV.csv"):
     with open(filename, "w", newline="") as f:
         fieldnames = [
             "timestamp",
@@ -32,6 +32,7 @@ def save_data_to_file(data, filename="MQSensorData.csv"):
             "Pressure(Pa)",
             "DHTTemperature",
             "Humidity",
+            "Target",
         ]
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
@@ -56,10 +57,10 @@ def parse_sensor_data(line, port):
                 "MQ6": sensors[1].split(":")[1],  # COM5 A1
                 "MQ2": sensors[2].split(":")[1],  # COM5 A2
                 "MQ9": sensors[3].split(":")[1],  # COM5 A3
-                "BMPTemperature": sensors[4].split(":")[1],  # COM5 A3
-                "Pressure(Pa)": sensors[5].split(":")[1],  # COM5 A3
-                "DHTTemperature": sensors[6].split(":")[1],  # COM5 A3
-                "Humidity": sensors[7].split(":")[1],  # COM5 A3
+                "BMPTemperature": sensors[4].split(":")[1],  # COM5 A4
+                "Pressure(Pa)": sensors[5].split(":")[1],  # COM5 A5
+                "DHTTemperature": sensors[6].split(":")[1],  # COM5 A6
+                "Humidity": sensors[7].split(":")[1],  # COM5 A7
             }
         return data_dict
     except IndexError:
@@ -68,8 +69,8 @@ def parse_sensor_data(line, port):
 
 
 def read_serial_data(ports=["COM5", "COM3"], baudrate=9600, save_interval=1):
-    ser1 = serial.Serial(ports[0], baudrate)  # COM3
-    ser2 = serial.Serial(ports[1], baudrate)  # COM5
+    ser1 = serial.Serial(ports[0], baudrate)  # COM5
+    ser2 = serial.Serial(ports[1], baudrate)  # COM3
     time.sleep(2)  # Allow some time for the connection to establish
 
     entry_count = 0  # Counter for entries to manage save interval
@@ -89,6 +90,9 @@ def read_serial_data(ports=["COM5", "COM3"], baudrate=9600, save_interval=1):
                     sensor_data.update(data1)
                     sensor_data.update(data2)
 
+                    # Add the hardcoded "Target" value
+                    sensor_data["Target"] = "MoscatoKWV"
+
                     MQSensorData.append(sensor_data)
                     print(MQSensorData[-1])  # Print the latest entry to verify
 
@@ -100,8 +104,8 @@ def read_serial_data(ports=["COM5", "COM3"], baudrate=9600, save_interval=1):
                         save_data_to_file(MQSensorData)
                         entry_count = 0  # Reset the counter
 
-                # Wait 1 seconds before reading the next set of data
-                time.sleep(1)
+            # Wait 0.5 seconds before reading the next set of data
+            time.sleep(0.5)
 
     except KeyboardInterrupt:
         print("Exiting...")

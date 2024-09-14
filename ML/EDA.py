@@ -76,7 +76,7 @@ def perform_eda(data):
 
 
 # Load the dataset
-data = pd.read_csv("ML/MQSensorData_updated.csv", header=0)
+data = pd.read_csv("ML/15h10.csv", header=0)
 
 # Perform EDA
 perform_eda(data)

@@ -87,6 +87,6 @@ if __name__ == "__main__":
 
     # Set up plot to call animate() function periodically
     ani = animation.FuncAnimation(
-        fig, animate, fargs=(x_data, y_data_dict), interval=1000
+        fig, animate, fargs=(x_data, y_data_dict), interval=100
     )
     plt.show()
