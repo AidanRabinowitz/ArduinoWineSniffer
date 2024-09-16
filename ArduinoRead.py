@@ -53,14 +53,14 @@ def parse_sensor_data(line, port):
             }
         elif port == "COM5":
             data_dict = {
-                "MQ8": sensors[0].split(":")[1],  # COM5 A0
-                "MQ2": sensors[1].split(":")[1],  # COM5 A1
-                "MQ135": sensors[2].split(":")[1],  # COM5 A2
-                "MQ9": sensors[3].split(":")[1],  # COM5 A3
-                "BMPTemperature": sensors[4].split(":")[1],  # COM5 A4
-                "Pressure(Pa)": sensors[5].split(":")[1],  # COM5 A5
-                "DHTTemperature": sensors[6].split(":")[1],  # COM5 A6
-                "Humidity": sensors[7].split(":")[1],  # COM5 A7
+                "MQ8": sensors[5].split(":")[1],  # COM5 A0
+                "MQ2": sensors[6].split(":")[1],  # COM5 A1
+                "MQ135": sensors[7].split(":")[1],  # COM5 A2
+                "MQ9": sensors[8].split(":")[1],  # COM5 A3
+                "BMPTemperature": sensors[9].split(":")[1],  # COM5 A4
+                "Pressure(Pa)": sensors[10].split(":")[1],  # COM5 A5
+                "DHTTemperature": sensors[11].split(":")[1],  # COM5 A6
+                "Humidity": sensors[12].split(":")[1],  # COM5 A7
             }
         return data_dict
     except IndexError:
