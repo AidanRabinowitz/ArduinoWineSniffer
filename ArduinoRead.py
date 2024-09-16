@@ -6,7 +6,7 @@ import csv
 MQSensorData = []
 
 
-def load_data_from_file(filename="MQSensorDataMoscatoKWV.csv"):
+def load_data_from_file(filename="ChangingPots.csv"):
     try:
         with open(filename, "r") as f:
             reader = csv.DictReader(f)
@@ -15,19 +15,19 @@ def load_data_from_file(filename="MQSensorDataMoscatoKWV.csv"):
         return []
 
 
-def save_data_to_file(data, filename="MQSensorDataMoscatoKWV.csv"):
+def save_data_to_file(data, filename="ChangingPots.csv"):
     with open(filename, "w", newline="") as f:
         fieldnames = [
-            "timestamp",
-            "MQ3",
-            "MQ135",
-            "MQ8",
-            "MQ5",
+            "yyyy-mm-dd timestamp",
+            "MQ6",  #
             "MQ7",
-            "MQ4",
-            "MQ6",
-            "MQ2",
-            "MQ9",
+            "MQ8",
+            "MQ135",
+            "MQ3",  #
+            "MQ4",  #
+            "MQ2",  #
+            "MQ5",  #
+            "MQ9",  #
             "BMPTemperature",
             "Pressure(Pa)",
             "DHTTemperature",
@@ -86,12 +86,12 @@ def read_serial_data(ports=["COM5", "COM3"], baudrate=9600, save_interval=1):
 
                 if data1 and data2:
                     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")  # Get current time
-                    sensor_data = {"timestamp": timestamp}
+                    sensor_data = {"yyyy-mm-dd timestamp": timestamp}
                     sensor_data.update(data1)
                     sensor_data.update(data2)
 
                     # Add the hardcoded "Target" value
-                    sensor_data["Target"] = "MoscatoKWV"
+                    sensor_data["Target"] = "AirControl1609"
 
                     MQSensorData.append(sensor_data)
                     print(MQSensorData[-1])  # Print the latest entry to verify

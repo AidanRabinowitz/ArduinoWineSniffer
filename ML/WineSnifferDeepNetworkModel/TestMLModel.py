@@ -133,7 +133,7 @@ plt.show()
 print(f"Highest achieved validation accuracy: {best_acc * 100:.2f}%")
 
 # Load new data (without target column) for prediction
-test_data = pd.read_csv("ML/TestCSVs/TestCSV_no_target.csv", header=0)
+test_data = pd.read_csv("ML\WineCSVs\OldMoscatoWine.csv", header=0)
 X_test = test_data.iloc[:, 1:10]  # MQ sensor data (columns 1 to 9)
 
 # Convert to PyTorch tensor
@@ -144,8 +144,6 @@ model = Multiclass()  # Assuming the Multiclass model is already defined
 model.load_state_dict(torch.load("wine_model.pth"))
 model.eval()
 
-# Load new data (without target column) for prediction
-test_data = pd.read_csv("ML/TestCSVs/TestCSV_no_target.csv", header=0)
 X_test = test_data.iloc[:, 1:10]  # MQ sensor data (columns 1 to 9)
 
 # Convert to PyTorch tensor
