@@ -45,17 +45,17 @@ def parse_sensor_data(line, port):
         sensors = line.split(",")
         if port == "COM3":
             data_dict = {
-                "MQ3": sensors[0].split(":")[1],  # COM3 A0
-                "MQ135": sensors[1].split(":")[1],  # COM3 A1
-                "MQ8": sensors[2].split(":")[1],  # COM3 A2
-                "MQ5": sensors[3].split(":")[1],  # COM3 A3
-                "MQ7": sensors[4].split(":")[1],  # COM3 A4
+                "MQ6": sensors[0].split(":")[1],  # COM3 A0
+                "MQ5": sensors[1].split(":")[1],  # COM3 A1
+                "MQ4": sensors[2].split(":")[1],  # COM3 A2
+                "MQ7": sensors[3].split(":")[1],  # COM3 A3
+                "MQ3": sensors[4].split(":")[1],  # COM3 A4
             }
         elif port == "COM5":
             data_dict = {
-                "MQ4": sensors[0].split(":")[1],  # COM5 A0
-                "MQ6": sensors[1].split(":")[1],  # COM5 A1
-                "MQ2": sensors[2].split(":")[1],  # COM5 A2
+                "MQ8": sensors[0].split(":")[1],  # COM5 A0
+                "MQ2": sensors[1].split(":")[1],  # COM5 A1
+                "MQ135": sensors[2].split(":")[1],  # COM5 A2
                 "MQ9": sensors[3].split(":")[1],  # COM5 A3
                 "BMPTemperature": sensors[4].split(":")[1],  # COM5 A4
                 "Pressure(Pa)": sensors[5].split(":")[1],  # COM5 A5
@@ -85,7 +85,8 @@ def read_serial_data(ports=["COM5", "COM3"], baudrate=9600, save_interval=1):
                 data2 = parse_sensor_data(line2, ports[1])
 
                 if data1 and data2:
-                    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")  # Get current time
+                    timestamp = time.strftime(
+                        "%Y-%m-%d %H:%M:%S")  # Get current time
                     sensor_data = {"yyyy-mm-dd timestamp": timestamp}
                     sensor_data.update(data1)
                     sensor_data.update(data2)
