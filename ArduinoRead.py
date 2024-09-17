@@ -5,8 +5,11 @@ import csv
 # Initialize the list to store data
 MQSensorData = []
 
+# AIDAN COM3 = JESS COM4
+# AIDAN COM4 = JESS COM4
 
-def load_data_from_file(filename="ChangingPots.csv"):
+
+def load_data_from_file(filename="CleanAirWithPotsAllClockwise.csv"):
     try:
         with open(filename, "r") as f:
             reader = csv.DictReader(f)
@@ -15,18 +18,18 @@ def load_data_from_file(filename="ChangingPots.csv"):
         return []
 
 
-def save_data_to_file(data, filename="ChangingPots.csv"):
+def save_data_to_file(data, filename="CleanAirWithPotsAllClockwise.csv"):
     with open(filename, "w", newline="") as f:
         fieldnames = [
             "yyyy-mm-dd timestamp",
             "MQ6",  #
+            "MQ5",
+            "MQ4",
             "MQ7",
-            "MQ8",
-            "MQ135",
             "MQ3",  #
-            "MQ4",  #
+            "MQ8",  #
             "MQ2",  #
-            "MQ5",  #
+            "MQ135",  #
             "MQ9",  #
             "BMPTemperature",
             "Pressure(Pa)",
@@ -43,24 +46,24 @@ def parse_sensor_data(line, port):
     try:
         data_dict = {}
         sensors = line.split(",")
-        if port == "COM3":
+        if port == "COM4":
             data_dict = {
-                "MQ6": sensors[0].split(":")[1],  # COM3 A0
-                "MQ5": sensors[1].split(":")[1],  # COM3 A1
-                "MQ4": sensors[2].split(":")[1],  # COM3 A2
-                "MQ7": sensors[3].split(":")[1],  # COM3 A3
-                "MQ3": sensors[4].split(":")[1],  # COM3 A4
+                "MQ6": sensors[0].split(":")[1],  # COM4 A0
+                "MQ5": sensors[1].split(":")[1],  # COM4 A1
+                "MQ4": sensors[2].split(":")[1],  # COM4 A2
+                "MQ7": sensors[3].split(":")[1],  # COM4 A3
+                "MQ3": sensors[4].split(":")[1],  # COM4 A4
             }
-        elif port == "COM5":
+        elif port == "COM3":
             data_dict = {
-                "MQ8": sensors[5].split(":")[1],  # COM5 A0
-                "MQ2": sensors[6].split(":")[1],  # COM5 A1
-                "MQ135": sensors[7].split(":")[1],  # COM5 A2
-                "MQ9": sensors[8].split(":")[1],  # COM5 A3
-                "BMPTemperature": sensors[9].split(":")[1],  # COM5 A4
-                "Pressure(Pa)": sensors[10].split(":")[1],  # COM5 A5
-                "DHTTemperature": sensors[11].split(":")[1],  # COM5 A6
-                "Humidity": sensors[12].split(":")[1],  # COM5 A7
+                "MQ8": sensors[0].split(":")[1],  # COM3 A0
+                "MQ2": sensors[1].split(":")[1],  # COM3 A1
+                "MQ135": sensors[2].split(":")[1],  # COM3 A2
+                "MQ9": sensors[3].split(":")[1],  # COM3 A3
+                "BMPTemperature": sensors[4].split(":")[1],  # COM3 A4
+                "Pressure(Pa)": sensors[5].split(":")[1],  # COM3 A5
+                "DHTTemperature": sensors[6].split(":")[1],  # COM3 A6
+                "Humidity": sensors[7].split(":")[1],  # COM3 A7
             }
         return data_dict
     except IndexError:
@@ -68,8 +71,8 @@ def parse_sensor_data(line, port):
         return None
 
 
-def read_serial_data(ports=["COM5", "COM3"], baudrate=9600, save_interval=1):
-    ser1 = serial.Serial(ports[0], baudrate)  # COM5
+def read_serial_data(ports=["COM4", "COM3"], baudrate=9600, save_interval=1):
+    ser1 = serial.Serial(ports[0], baudrate)  # COM4
     ser2 = serial.Serial(ports[1], baudrate)  # COM3
     time.sleep(2)  # Allow some time for the connection to establish
 
@@ -92,7 +95,7 @@ def read_serial_data(ports=["COM5", "COM3"], baudrate=9600, save_interval=1):
                     sensor_data.update(data2)
 
                     # Add the hardcoded "Target" value
-                    sensor_data["Target"] = "AirControl1609"
+                    sensor_data["Target"] = "CleanAirWithPotsAllClockwise"
 
                     MQSensorData.append(sensor_data)
                     print(MQSensorData[-1])  # Print the latest entry to verify
@@ -121,4 +124,4 @@ def read_serial_data(ports=["COM5", "COM3"], baudrate=9600, save_interval=1):
 if __name__ == "__main__":
     # Load existing data
     MQSensorData = load_data_from_file()
-    read_serial_data(ports=["COM5", "COM3"], baudrate=9600)
+    read_serial_data(ports=["COM3", "COM4"], baudrate=9600)
