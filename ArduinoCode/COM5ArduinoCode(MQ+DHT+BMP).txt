@@ -1,4 +1,4 @@
-// Blue cable Uno with COM5
+// Blue cable Uno with COM5 for AIDAN and COM3 for JESS
 // #include <DHT11.h>
 // DHT11 dht11(A7);
 #include <Wire.h>
@@ -15,7 +15,7 @@
 
 //Adafruit_BMP280 bme; // I2C
 Adafruit_BMP280 bme(BMP_CS, BMP_MOSI, BMP_MISO,  BMP_SCK);
-dht DHT; 
+dht DHT;
 
 void setup() {
   Serial.begin(9600);
@@ -33,8 +33,23 @@ void setup() {
 }
 
 void loop() {
+  int sensorValue0 = analogRead(A0); // MQ8
+  int sensorValue1 = analogRead(A1); // MQ2
+  int sensorValue2 = analogRead(A2); // MQ135
+  int sensorValue3 = analogRead(A3); // MQ9
+  // int sensorValue4 = analogRead(A4); 
+  // int sensorValue5 = analogRead(A5); 
+
+  Serial.print("Sensor_A0:"); 
+  Serial.print(sensorValue0);
+  Serial.print(",Sensor_A1:"); 
+  Serial.print(sensorValue1);
+  Serial.print(",Sensor_A2:"); 
+  Serial.print(sensorValue2);
+  Serial.print(",Sensor_A3:"); 
+  Serial.print(sensorValue3);
   // Pressure sensor
-  Serial.print("BMP.Temperature(*C):");
+  Serial.print(",BMP.Temperature(*C):");
   Serial.print(bme.readTemperature());
   
   Serial.print(",Pressure(Pa):");
@@ -47,26 +62,9 @@ void loop() {
   Serial.print(",Humidity:");
   Serial.print(DHT.humidity);
   //   Serial.println();
-  int sensorValue0 = analogRead(A0); 
-  int sensorValue1 = analogRead(A1); 
-  int sensorValue2 = analogRead(A2); 
-  int sensorValue3 = analogRead(A3); 
-  // int sensorValue4 = analogRead(A4); 
-  // int sensorValue5 = analogRead(A5); 
 
-  Serial.print(",Sensor_A0:"); 
-  Serial.print(sensorValue0);
-  Serial.print(",Sensor_A1:"); 
-  Serial.print(sensorValue1);
-  Serial.print(",Sensor_A2:"); 
-  Serial.print(sensorValue2);
-  Serial.print(",Sensor_A3:"); 
-  Serial.print(sensorValue3);
-  // Serial.print(",Sensor_A4:");
-  // Serial.println(sensorValue4);
-  // Serial.print(",Sensor_A5:");
-  // Serial.println(sensorValue5);
+
   Serial.println();
 
-  delay(1000); // Wait 0.1 second before the next reading
+  delay(100); // Wait 0.1 second before the next reading
 }
