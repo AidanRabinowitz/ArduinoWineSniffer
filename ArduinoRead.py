@@ -6,7 +6,7 @@ import csv
 MQSensorData = []
 
 
-def load_data_from_file(filename="ChangingPots.csv"):
+def load_data_from_file(filename="AirPostSilverMynSauvBlanc.csv"):
     try:
         with open(filename, "r") as f:
             reader = csv.DictReader(f)
@@ -15,18 +15,18 @@ def load_data_from_file(filename="ChangingPots.csv"):
         return []
 
 
-def save_data_to_file(data, filename="ChangingPots.csv"):
+def save_data_to_file(data, filename="AirPostSilverMynSauvBlanc.csv"):
     with open(filename, "w", newline="") as f:
         fieldnames = [
             "yyyy-mm-dd timestamp",
             "MQ6",  #
+            "MQ5",
+            "MQ4",
             "MQ7",
-            "MQ8",
-            "MQ135",
             "MQ3",  #
-            "MQ4",  #
+            "MQ8",  #
             "MQ2",  #
-            "MQ5",  #
+            "MQ135",  #
             "MQ9",  #
             "BMPTemperature",
             "Pressure(Pa)",
@@ -53,14 +53,14 @@ def parse_sensor_data(line, port):
             }
         elif port == "COM5":
             data_dict = {
-                "MQ8": sensors[5].split(":")[1],  # COM5 A0
-                "MQ2": sensors[6].split(":")[1],  # COM5 A1
-                "MQ135": sensors[7].split(":")[1],  # COM5 A2
-                "MQ9": sensors[8].split(":")[1],  # COM5 A3
-                "BMPTemperature": sensors[9].split(":")[1],  # COM5 A4
-                "Pressure(Pa)": sensors[10].split(":")[1],  # COM5 A5
-                "DHTTemperature": sensors[11].split(":")[1],  # COM5 A6
-                "Humidity": sensors[12].split(":")[1],  # COM5 A7
+                "MQ8": sensors[0].split(":")[1],  # COM5 A0
+                "MQ2": sensors[1].split(":")[1],  # COM5 A1
+                "MQ135": sensors[2].split(":")[1],  # COM5 A2
+                "MQ9": sensors[3].split(":")[1],  # COM5 A3
+                "BMPTemperature": sensors[4].split(":")[1],  # COM5 A4
+                "Pressure(Pa)": sensors[5].split(":")[1],  # COM5 A5
+                "DHTTemperature": sensors[6].split(":")[1],  # COM5 A6
+                "Humidity": sensors[7].split(":")[1],  # COM5 A7
             }
         return data_dict
     except IndexError:
@@ -68,9 +68,9 @@ def parse_sensor_data(line, port):
         return None
 
 
-def read_serial_data(ports=["COM5", "COM3"], baudrate=9600, save_interval=1):
-    ser1 = serial.Serial(ports[0], baudrate)  # COM5
-    ser2 = serial.Serial(ports[1], baudrate)  # COM3
+def read_serial_data(ports=["COM3", "COM5"], baudrate=9600, save_interval=1):
+    ser1 = serial.Serial(ports[0], baudrate)  # COM3
+    ser2 = serial.Serial(ports[1], baudrate)  # COM5
     time.sleep(2)  # Allow some time for the connection to establish
 
     entry_count = 0  # Counter for entries to manage save interval
@@ -85,14 +85,13 @@ def read_serial_data(ports=["COM5", "COM3"], baudrate=9600, save_interval=1):
                 data2 = parse_sensor_data(line2, ports[1])
 
                 if data1 and data2:
-                    timestamp = time.strftime(
-                        "%Y-%m-%d %H:%M:%S")  # Get current time
+                    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")  # Get current time
                     sensor_data = {"yyyy-mm-dd timestamp": timestamp}
                     sensor_data.update(data1)
                     sensor_data.update(data2)
 
                     # Add the hardcoded "Target" value
-                    sensor_data["Target"] = "AirControl1609"
+                    sensor_data["Target"] = "AirPostSilverMynSauvBlanc"
 
                     MQSensorData.append(sensor_data)
                     print(MQSensorData[-1])  # Print the latest entry to verify
