@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 
 # Read the training data and apply one-hot encoding
-train_data = pd.read_csv("ML/WineCSVs/TrainCSV.csv", header=0)
+train_data = pd.read_csv("ML/WineCSVs/SixWineData.csv", header=0)
 
 X_train = train_data.iloc[:, 1:10]  # Features from columns 1 to 9
 y_train = train_data.iloc[:, [14]]  # Target in column 14
@@ -69,8 +69,8 @@ for epoch in range(n_epochs):
         bar.set_description(f"Epoch {epoch}")
         for i in bar:
             start = i * batch_size
-            X_batch = X_train[start : start + batch_size]
-            y_batch = y_train[start : start + batch_size]
+            X_batch = X_train[start: start + batch_size]
+            y_batch = y_train[start: start + batch_size]
 
             # Forward pass
             y_pred = model(X_batch)
@@ -82,7 +82,8 @@ for epoch in range(n_epochs):
             optimizer.step()
 
             # Compute accuracy
-            acc = (torch.argmax(y_pred, 1) == torch.argmax(y_batch, 1)).float().mean()
+            acc = (torch.argmax(y_pred, 1) ==
+                   torch.argmax(y_batch, 1)).float().mean()
             epoch_loss.append(float(loss))
             epoch_acc.append(float(acc))
             bar.set_postfix(loss=float(loss), acc=float(acc))
@@ -92,7 +93,8 @@ for epoch in range(n_epochs):
     with torch.no_grad():
         y_pred_val = model(X_val)
         val_loss = loss_fn(y_pred_val, y_val)
-        val_acc = (torch.argmax(y_pred_val, 1) == torch.argmax(y_val, 1)).float().mean()
+        val_acc = (torch.argmax(y_pred_val, 1) ==
+                   torch.argmax(y_val, 1)).float().mean()
 
     val_loss = float(val_loss)
     val_acc = float(val_acc)
@@ -132,6 +134,8 @@ plt.show()
 
 print(f"Highest achieved validation accuracy: {best_acc * 100:.2f}%")
 
+# BELOW CODE CAN BE MOVE TO A SEPARATE CLASS OR PYTHON SCRIPT
+
 # Load new data (without target column) for prediction
 test_data = pd.read_csv("ML\WineCSVs\OldMoscatoWine.csv", header=0)
 X_test = test_data.iloc[:, 1:10]  # MQ sensor data (columns 1 to 9)
@@ -157,7 +161,8 @@ with torch.no_grad():
 predicted_classes = torch.argmax(y_pred_test, dim=1)
 
 # Create a mapping of class indices to wine labels
-wine_labels = ohe.categories_[0]  # Assuming ohe is the OneHotEncoder from training
+# Assuming ohe is the OneHotEncoder from training
+wine_labels = ohe.categories_[0]
 
 # Print predicted wine labels
 print("Predicted Wine Labels:")
