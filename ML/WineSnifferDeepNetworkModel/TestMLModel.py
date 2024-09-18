@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 
 # Read the training data and apply one-hot encoding
-train_data = pd.read_csv("ML/WineCSVs/SixWineData.csv", header=0)
+train_data = pd.read_csv("ML\TrainCSVs\SixWines1609.csv", header=0)
 
 X_train = train_data.iloc[:, 1:10]  # Features from columns 1 to 9
 y_train = train_data.iloc[:, [14]]  # Target in column 14
