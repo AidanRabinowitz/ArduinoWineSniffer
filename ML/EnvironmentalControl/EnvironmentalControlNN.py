@@ -11,13 +11,17 @@ from tqdm import tqdm
 class MLP(nn.Module):
     def __init__(self, input_size):
         super(MLP, self).__init__()
-        self.fc1 = nn.Linear(input_size, 64)
-        self.fc2 = nn.Linear(64, 64)
+        self.fc1 = nn.Linear(input_size, 128)  # Increase number of neurons
+        self.dropout1 = nn.Dropout(0.2)  # Dropout layer
+        self.fc2 = nn.Linear(128, 64)
+        self.dropout2 = nn.Dropout(0.2)  # Another dropout layer
         self.fc3 = nn.Linear(64, 1)
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
+        x = self.dropout1(x)  # Apply dropout
         x = torch.relu(self.fc2(x))
+        x = self.dropout2(x)  # Apply dropout
         x = self.fc3(x)
         return x
 
@@ -83,10 +87,14 @@ def adjust_mq_sensors(file_path, env_columns, mq_columns, output_csv):
     return adjusted_mq
 
 
+import pandas as pd
+
+
 def remove_invalid_rows(file_path, output_cleaned_csv):
     """
-    Removes rows that contain the substring '_A' in any columns
-    except the last one. The cleaned data is saved to a new CSV.
+    Removes rows that contain any letter (excluding the first row and the target column),
+    as well as outliers in MQ columns using the IQR method.
+    The cleaned data is saved to a new CSV.
 
     Parameters:
     file_path (str): Path to the input CSV file containing sensor data.
@@ -98,19 +106,44 @@ def remove_invalid_rows(file_path, output_cleaned_csv):
     # Load the dataset
     data = pd.read_csv(file_path)
 
-    # Get the last column name
+    # Get the last column name (assumed to be the target column)
     last_column = data.columns[-1]
 
     # Get the columns to check (all except the last one)
     non_last_columns = data.columns[:-1]
 
-    # Create a mask to filter out rows containing '_A' in non-last columns
+    # Create a mask to filter out rows containing any letters in non-last columns
     mask = data[non_last_columns].apply(
-        lambda row: ~row.astype(str).str.contains("_A").any(), axis=1
+        lambda row: not row.astype(str).str.contains(r"[a-zA-Z]").any(), axis=1
     )
 
-    # Keep only the valid rows
-    cleaned_data = data[mask]
+    # Keep only valid rows from the initial check
+    cleaned_data = data[mask | (data.index == 0)]
+
+    # Remove outliers from MQ columns using the IQR method
+    mq_columns = cleaned_data.columns[
+        cleaned_data.columns.str.startswith("MQ")
+    ]  # Adjust if necessary
+
+    for column in mq_columns:
+        # Convert column to numeric, forcing errors to NaN
+        cleaned_data[column] = pd.to_numeric(cleaned_data[column], errors="coerce")
+
+        # Drop rows with NaN values created by the conversion
+        cleaned_data = cleaned_data.dropna(subset=[column])
+
+        # Calculate IQR
+        Q1 = cleaned_data[column].quantile(0.25)
+        Q3 = cleaned_data[column].quantile(0.75)
+        IQR = Q3 - Q1
+        lower_bound = Q1 - 1.5 * IQR
+        upper_bound = Q3 + 1.5 * IQR
+
+        # Create a mask for non-outliers
+        non_outlier_mask = (cleaned_data[column] >= lower_bound) & (
+            cleaned_data[column] <= upper_bound
+        )
+        cleaned_data = cleaned_data[non_outlier_mask]
 
     # Save the cleaned data to a new CSV
     cleaned_data.to_csv(output_cleaned_csv, index=False)
@@ -124,7 +157,10 @@ cleaned_csv = "ML\EnvironmentalControl\TemperatureRangeTest_cleaned.csv"
 output_csv = "ML\EnvironmentalControl\TemperatureRangeTest_adjusted.csv"
 
 # Use only the BMPTemperature column as the environmental factor
-env_columns = ["BMPTemperature"]
+env_columns = [
+    "BMPTemperature",
+    "Humidity",
+]
 mq_columns = ["MQ135", "MQ2", "MQ3", "MQ4", "MQ5", "MQ6", "MQ7", "MQ8", "MQ9"]
 
 # Call the function to clean the data
