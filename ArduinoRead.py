@@ -6,7 +6,7 @@ import csv
 MQSensorData = []
 
 # AIDAN COM5 = JESS COM3
-# AIDAN COM5 = JESS COM5
+# AIDAN COM3 = JESS COM4
 
 
 def load_data_from_file(filename="WarmingUpClockwiseSensorsFromPlugIn.csv"):
@@ -88,7 +88,8 @@ def read_serial_data(ports=["COM3", "COM5"], baudrate=9600, save_interval=1):
                 data2 = parse_sensor_data(line2, ports[1])
 
                 if data1 and data2:
-                    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")  # Get current time
+                    timestamp = time.strftime(
+                        "%Y-%m-%d %H:%M:%S")  # Get current time
                     sensor_data = {"yyyy-mm-dd timestamp": timestamp}
                     sensor_data.update(data1)
                     sensor_data.update(data2)
