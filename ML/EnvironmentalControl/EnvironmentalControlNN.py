@@ -81,6 +81,10 @@ def adjust_mq_sensors(file_path, env_columns, mq_columns, output_csv):
         # Subtract the predicted values from the actual sensor values
         adjusted_mq[sensor] = data[sensor] - predicted_mq.flatten()
 
+    # Include the target column in the adjusted DataFrame
+    target_column = data.columns[-1]  # Assuming the target is the last column
+    adjusted_mq[target_column] = data[target_column]
+
     # Save adjusted MQ data to a CSV file
     adjusted_mq.to_csv(output_csv, index=False)
 
