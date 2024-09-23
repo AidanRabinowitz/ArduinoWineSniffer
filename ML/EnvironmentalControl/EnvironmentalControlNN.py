@@ -11,9 +11,9 @@ from tqdm import tqdm
 class MLP(nn.Module):
     def __init__(self, input_size):
         super(MLP, self).__init__()
-        self.fc1 = nn.Linear(input_size, 128)  # Increase number of neurons
+        self.fc1 = nn.Linear(input_size, 256)  # Increase number of neurons
         self.dropout1 = nn.Dropout(0.2)  # Dropout layer
-        self.fc2 = nn.Linear(128, 64)
+        self.fc2 = nn.Linear(256, 64)
         self.dropout2 = nn.Dropout(0.2)  # Another dropout layer
         self.fc3 = nn.Linear(64, 1)
 
@@ -140,8 +140,8 @@ def remove_invalid_rows(file_path, output_cleaned_csv):
         Q1 = cleaned_data[column].quantile(0.25)
         Q3 = cleaned_data[column].quantile(0.75)
         IQR = Q3 - Q1
-        lower_bound = Q1 - 1.5 * IQR
-        upper_bound = Q3 + 1.5 * IQR
+        lower_bound = Q1 - 3 * IQR
+        upper_bound = Q3 + 3 * IQR
 
         # Create a mask for non-outliers
         non_outlier_mask = (cleaned_data[column] >= lower_bound) & (
@@ -156,9 +156,9 @@ def remove_invalid_rows(file_path, output_cleaned_csv):
 
 
 # Define the file paths and column names
-input_csv = "ML\EnvironmentalControl\TemperatureRangeTest.csv"
-cleaned_csv = "ML\EnvironmentalControl\TemperatureRangeTest_cleaned.csv"
-output_csv = "ML\EnvironmentalControl\TemperatureRangeTest_adjusted.csv"
+input_csv = "TemperatureRangeTest.csv"
+cleaned_csv = "TemperatureRangeTest_cleaned.csv"
+output_csv = "TemperatureRangeTest_adjusted.csv"
 
 # Use only the BMPTemperature column as the environmental factor
 env_columns = [

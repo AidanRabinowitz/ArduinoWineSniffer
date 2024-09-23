@@ -9,7 +9,7 @@ MQSensorData = []
 # AIDAN COM3 = JESS COM4
 
 
-def load_data_from_file(filename="SensorDataPostWarmUpAllClockwise(20degEnvTemp).csv"):
+def load_data_from_file(filename="SophieTest2309(25degEnvTemp).csv"):
     try:
         with open(filename, "r") as f:
             reader = csv.DictReader(f)
@@ -18,9 +18,7 @@ def load_data_from_file(filename="SensorDataPostWarmUpAllClockwise(20degEnvTemp)
         return []
 
 
-def save_data_to_file(
-    data, filename="SensorDataPostWarmUpAllClockwise(20degEnvTemp).csv"
-):
+def save_data_to_file(data, filename="SophieTest2309(25degEnvTemp).csv"):
     with open(filename, "w", newline="") as f:
         fieldnames = [
             "yyyy-mm-dd timestamp",
@@ -90,16 +88,13 @@ def read_serial_data(ports=["COM3", "COM5"], baudrate=9600, save_interval=1):
                 data2 = parse_sensor_data(line2, ports[1])
 
                 if data1 and data2:
-                    timestamp = time.strftime(
-                        "%Y-%m-%d %H:%M:%S")  # Get current time
+                    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")  # Get current time
                     sensor_data = {"yyyy-mm-dd timestamp": timestamp}
                     sensor_data.update(data1)
                     sensor_data.update(data2)
 
                     # Add the hardcoded "Target" value
-                    sensor_data["Target"] = (
-                        "SensorDataPostWarmUpAllClockwise(20degEnvTemp)"
-                    )
+                    sensor_data["Target"] = "SophieTest2309(25degEnvTemp)"
 
                     MQSensorData.append(sensor_data)
                     print(MQSensorData[-1])  # Print the latest entry to verify

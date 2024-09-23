@@ -6,12 +6,13 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import tqdm
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import OneHotEncoder
 import seaborn as sns
+from sklearn.model_selection import train_test_split
 
 # read data and apply one-hot encoding
-data = pd.read_csv("ML\WineCSVs\TrainCSV.csv", header=0)
+data = pd.read_csv("ML/TrainCSVs/SixWines1609.csv", header=0)
 
 X = data.iloc[:, 1:10]
 y = data.iloc[:, [14]]
@@ -113,19 +114,19 @@ model.load_state_dict(best_weights)
 # Save the trained model for later use
 torch.save(model.state_dict(), "wine_model.pth")
 
-# Plot the loss and accuracy
-plt.plot(train_loss_hist, label="train")
-plt.plot(test_loss_hist, label="test")
-plt.xlabel("epochs")
-plt.ylabel("cross entropy")
-plt.legend()
-plt.show()
+# # Plot the loss and accuracy
+# plt.plot(train_loss_hist, label="train")
+# plt.plot(test_loss_hist, label="test")
+# plt.xlabel("epochs")
+# plt.ylabel("cross entropy")
+# plt.legend()
+# plt.show()
 
-plt.plot(train_acc_hist, label="train")
-plt.plot(test_acc_hist, label="test")
-plt.xlabel("epochs")
-plt.ylabel("accuracy")
-plt.legend()
-plt.show()
+# plt.plot(train_acc_hist, label="train")
+# plt.plot(test_acc_hist, label="test")
+# plt.xlabel("epochs")
+# plt.ylabel("accuracy")
+# plt.legend()
+# plt.show()
 
 print(f"Highest achieved accuracy: {best_acc * 100:.2f}%")
