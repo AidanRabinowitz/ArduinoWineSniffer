@@ -140,8 +140,8 @@ def remove_invalid_rows(file_path, output_cleaned_csv):
         Q1 = cleaned_data[column].quantile(0.25)
         Q3 = cleaned_data[column].quantile(0.75)
         IQR = Q3 - Q1
-        lower_bound = Q1 - 3 * IQR
-        upper_bound = Q3 + 3 * IQR
+        lower_bound = Q1 - 5 * IQR
+        upper_bound = Q3 + 5 * IQR
 
         # Create a mask for non-outliers
         non_outlier_mask = (cleaned_data[column] >= lower_bound) & (
@@ -156,9 +156,9 @@ def remove_invalid_rows(file_path, output_cleaned_csv):
 
 
 # Define the file paths and column names
-input_csv = "TemperatureRangeTest.csv"
-cleaned_csv = "TemperatureRangeTest_cleaned.csv"
-output_csv = "TemperatureRangeTest_adjusted.csv"
+input_csv = "ML/WineCSVs/Test/Test2509/NamaquaTest2509(20degEnvTemp).csv"
+cleaned_csv = "NamaquaTest2509(20degEnvTemp)cleaned.csv"
+output_csv = "NamaquaTest2509(20degEnvTemp)_adjusted.csv"
 
 # Use only the BMPTemperature column as the environmental factor
 env_columns = [

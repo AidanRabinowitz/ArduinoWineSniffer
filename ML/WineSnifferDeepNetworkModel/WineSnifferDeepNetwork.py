@@ -8,14 +8,34 @@ import torch.optim as optim
 import tqdm
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import OneHotEncoder
-import seaborn as sns
 from sklearn.model_selection import train_test_split
 
-# read data and apply one-hot encoding
-data = pd.read_csv("ML/TrainCSVs/SixWines1609.csv", header=0)
+# Train data
+data = pd.read_csv(
+    "SixWines2509(20degEnvTemp)cleaned.csv",
+    header=0,
+)
 
-X = data.iloc[:, 1:10]
-y = data.iloc[:, [14]]
+feature_columns = [
+    "MQ135",
+    "MQ2",
+    "MQ3",
+    "MQ4",
+    "MQ5",
+    "MQ6",
+    "MQ7",
+    "MQ8",
+    "MQ9",
+    # "BMPTemperature",
+    # "Pressure(Pa)",
+    # "DHTTemperature",
+    # "Humidity",
+]
+target_column = "Target"
+# For adjusted CSV (environmental control)
+X = data[feature_columns]
+y = data[[target_column]]
+
 ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False).fit(y)
 y = ohe.transform(y)
 
@@ -26,8 +46,7 @@ y = torch.tensor(y, dtype=torch.float32)
 # X = torch.nn.functional.normalize(X, p=1.0, dim=1)
 # y = torch.nn.functional.normalize(y, p=1.0, dim=1)
 # split
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, train_size=0.8, shuffle=True)
+X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, shuffle=True)
 
 # Determine the number of output classes dynamically
 num_outputs = y.shape[1]  # Number of columns after one-hot encoding
@@ -56,7 +75,7 @@ loss_fn = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # prepare model and training parameters
-n_epochs = 200
+n_epochs = 50
 batch_size = 5
 batches_per_epoch = len(X_train) // batch_size
 
@@ -78,8 +97,8 @@ for epoch in range(n_epochs):
         for i in bar:
             # take a batch
             start = i * batch_size
-            X_batch = X_train[start: start + batch_size]
-            y_batch = y_train[start: start + batch_size]
+            X_batch = X_train[start : start + batch_size]
+            y_batch = y_train[start : start + batch_size]
             # forward pass
             y_pred = model(X_batch)
             loss = loss_fn(y_pred, y_batch)
@@ -89,8 +108,7 @@ for epoch in range(n_epochs):
             # update weights
             optimizer.step()
             # compute and store metrics
-            acc = (torch.argmax(y_pred, 1) ==
-                   torch.argmax(y_batch, 1)).float().mean()
+            acc = (torch.argmax(y_pred, 1) == torch.argmax(y_batch, 1)).float().mean()
             epoch_loss.append(float(loss))
             epoch_acc.append(float(acc))
             bar.set_postfix(loss=float(loss), acc=float(acc))
@@ -108,8 +126,7 @@ for epoch in range(n_epochs):
     if acc > best_acc:
         best_acc = acc
         best_weights = copy.deepcopy(model.state_dict())
-    print(
-        f"Epoch {epoch} validation: Cross-entropy={ce:.2f}, Accuracy={acc*100:.1f}%")
+    print(f"Epoch {epoch} validation: Cross-entropy={ce:.2f}, Accuracy={acc*100:.1f}%")
 
     # Restore best model
 model.load_state_dict(best_weights)

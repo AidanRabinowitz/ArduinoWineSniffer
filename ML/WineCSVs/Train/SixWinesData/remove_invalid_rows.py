@@ -47,8 +47,8 @@ def remove_invalid_rows(file_path, output_cleaned_csv):
         Q1 = cleaned_data[column].quantile(0.25)
         Q3 = cleaned_data[column].quantile(0.75)
         IQR = Q3 - Q1
-        lower_bound = Q1 - 4 * IQR
-        upper_bound = Q3 + 4 * IQR
+        lower_bound = Q1 - 5 * IQR
+        upper_bound = Q3 + 5 * IQR
 
         # Create a mask for non-outliers
         non_outlier_mask = (cleaned_data[column] >= lower_bound) & (
@@ -62,8 +62,10 @@ def remove_invalid_rows(file_path, output_cleaned_csv):
     return cleaned_data
 
 
-input_csv = "ML/WineCSVs/Train/SixWinesData/SixWines2309(25degEnvTemp).csv"
-cleaned_csv = "ML/WineCSVs/Train/SixWinesData/SixWines2309(25degEnvTemp)_cleaned.csv"
+input_csv = "ML\WineCSVs\Train\SixWinesData\SixWines2509(20degEnvTemp).csv"
+cleaned_csv = (
+    "ML\WineCSVs\Train\SixWinesData\SixWines2509(20degEnvTemp).csv_cleaned.csv"
+)
 
 cleaned_data = remove_invalid_rows(input_csv, cleaned_csv)
 print(f"Cleaned data saved to {cleaned_csv}")

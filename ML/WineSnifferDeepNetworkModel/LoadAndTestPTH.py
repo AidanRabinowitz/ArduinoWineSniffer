@@ -1,16 +1,41 @@
 import pandas as pd
 import torch
-from sklearn.preprocessing import OneHotEncoder
 import torch.nn as nn
+from sklearn.preprocessing import OneHotEncoder
+import numpy as np
+
+# Load the training data to fit the OneHotEncoder
+train_data = pd.read_csv("SixWines2509(20degEnvTemp)cleaned.csv", header=0)
+
+# Feature columns used for training and testing
+feature_columns = ["MQ135", "MQ2", "MQ3", "MQ4", "MQ5", "MQ6", "MQ7", "MQ8", "MQ9"]
+
+# Target column from the training data
+target_column = "Target"
+y_train = train_data[[target_column]]
+
+# Fit the OneHotEncoder using the training data labels
+ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False).fit(y_train)
+
+# Load the test data (the one you are testing the model on)
+test_data = pd.read_csv(
+    "ML/WineCSVs/Test/Test2509/SophieTest2509(20degEnvTemp).csv", header=0
+)
+X_test = test_data[feature_columns]
+
+# Convert test data to PyTorch tensor
+X_test = torch.tensor(X_test.values, dtype=torch.float32)
 
 
-# Load the pre-trained model class
+# Define the same model architecture used in training
 class Multiclass(nn.Module):
     def __init__(self):
         super().__init__()
-        self.hidden = nn.Linear(9, 8)  # Adjust input size based on your data
+        self.hidden = nn.Linear(X_test.shape[1], 8)  # Input layer for 9 features
         self.act = nn.ReLU()
-        self.output = nn.Linear(8, 6)  # Adjust output size based on number of classes
+        self.output = nn.Linear(
+            8, ohe.categories_[0].size
+        )  # Use num_classes instead of 1
 
     def forward(self, x):
         x = self.act(self.hidden(x))
@@ -23,20 +48,6 @@ model = Multiclass()
 model.load_state_dict(torch.load("wine_model.pth"))
 model.eval()
 
-# Load the test data
-test_data = pd.read_csv("ML\TestCSVs\TestCSV1309.csv", header=0)
-X_test = test_data.iloc[:, 1:10]  # MQ sensor data (columns 1 to 9)
-
-# Convert to PyTorch tensor
-X_test = torch.tensor(X_test.values, dtype=torch.float32)
-
-# OneHotEncoder from training for decoding predictions back to labels
-# Ensure the same encoder is used as in training
-ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False)
-ohe.fit(
-    pd.read_csv("ML/TrainCSVs/SixWines1609.csv", header=0).iloc[:, [14]]
-)  # Load target column from training data
-
 # Make predictions on test data
 with torch.no_grad():
     y_pred_test = model(X_test)
@@ -44,12 +55,23 @@ with torch.no_grad():
 # Get the predicted class indices
 predicted_classes = torch.argmax(y_pred_test, dim=1)
 
-# Create a mapping of class indices to wine labels (from OHE used in training)
+# Decode predictions back to wine labels
 wine_labels = ohe.categories_[
     0
-]  # Extracting the labels (assuming OHE was fitted similarly during training)
+]  # Extract labels from OneHotEncoder fitted on training data
 
 # Print predicted wine labels for each test sample
 print("Predicted Wine Labels:")
+predicted_wine_names = []
 for i, pred_class in enumerate(predicted_classes):
-    print(f"Sample {i+1}: {wine_labels[pred_class]}")
+    wine_name = wine_labels[pred_class]
+    predicted_wine_names.append(wine_name)
+    print(f"Sample {i+1}: {wine_name}")
+
+# Calculate and print the mode using numpy.unique
+unique_wines, counts = np.unique(predicted_wine_names, return_counts=True)
+most_frequent_wine = unique_wines[np.argmax(counts)]
+
+print(
+    f"\nThe wine that appeared the most frequently is: {most_frequent_wine} (appeared {np.max(counts)} times)"
+)
