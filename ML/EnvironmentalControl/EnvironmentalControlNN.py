@@ -167,7 +167,6 @@ env_columns = [
 ]
 mq_columns = ["MQ135", "MQ2", "MQ3", "MQ4", "MQ5", "MQ6", "MQ7", "MQ8", "MQ9"]
 
-# Call the function to clean the data
 cleaned_data = remove_invalid_rows(input_csv, cleaned_csv)
 print(f"Cleaned data saved to {cleaned_csv}")
 
