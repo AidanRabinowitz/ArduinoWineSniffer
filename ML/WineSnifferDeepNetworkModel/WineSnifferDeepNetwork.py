@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 
 # Train data
 data = pd.read_csv(
-    "SixWines2509(20degEnvTemp)cleaned.csv",
+    "ML\WineCSVs\Train\SixWinesData\SixWinesCombined.csv",
     header=0,
 )
 
@@ -26,7 +26,7 @@ feature_columns = [
     "MQ7",
     "MQ8",
     "MQ9",
-    # "BMPTemperature",
+    "BMPTemperature",
     # "Pressure(Pa)",
     # "DHTTemperature",
     # "Humidity",
@@ -52,19 +52,37 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, shuffl
 num_outputs = y.shape[1]  # Number of columns after one-hot encoding
 
 
+# class Multiclass(nn.Module):
+#     def __init__(self):
+#         super().__init__()
+#         self.hidden = nn.Linear(
+#             X_train.shape[1], 8
+#         )  # Input layer size based on X columns
+#         self.act = nn.ReLU()
+#         self.output = nn.Linear(
+#             8, num_outputs
+#         )  # Output layer size based on target classes
+
+#     def forward(self, x):
+#         x = self.act(self.hidden(x))
+#         x = self.output(x)
+#         return x
+
+
 class Multiclass(nn.Module):
     def __init__(self):
         super().__init__()
-        self.hidden = nn.Linear(
-            X_train.shape[1], 8
-        )  # Input layer size based on X columns
+        self.hidden1 = nn.Linear(X_train.shape[1], 32)
+        self.bn1 = nn.BatchNorm1d(32)
+        self.hidden2 = nn.Linear(32, 16)
+        self.bn2 = nn.BatchNorm1d(16)
         self.act = nn.ReLU()
-        self.output = nn.Linear(
-            8, num_outputs
-        )  # Output layer size based on target classes
+        self.output = nn.Linear(16, num_outputs)
+        self.dropout = nn.Dropout(0.5)  # 50% dropout rate
 
     def forward(self, x):
-        x = self.act(self.hidden(x))
+        x = self.act(self.bn1(self.hidden1(x)))
+        x = self.dropout(self.act(self.bn2(self.hidden2(x))))
         x = self.output(x)
         return x
 

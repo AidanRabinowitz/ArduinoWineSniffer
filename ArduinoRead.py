@@ -74,7 +74,7 @@ def parse_sensor_data(line, port):
 def read_serial_data(ports=["COM3", "COM5"], baudrate=9600, save_interval=1):
     ser1 = serial.Serial(ports[0], baudrate)  # COM3
     ser2 = serial.Serial(ports[1], baudrate)  # COM5
-    time.sleep(2)  # Allow some time for the connection to establish
+    # time.sleep(2)  # Allow some time for the connection to establish
 
     entry_count = 0  # Counter for entries to manage save interval
 

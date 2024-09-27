@@ -1,21 +1,38 @@
 import pandas as pd
 import torch
 import torch.nn as nn
-from sklearn.preprocessing import OneHotEncoder
 import numpy as np
+from sklearn.preprocessing import LabelEncoder
 
-# Load the training data to fit the OneHotEncoder
-train_data = pd.read_csv("SixWines2509(20degEnvTemp)cleaned.csv", header=0)
+# Load the training data to fit the LabelEncoder (to map predictions back to class labels)
+train_data = pd.read_csv(
+    "ML/WineCSVs/Train/SixWinesData/SixWinesCombined.csv", header=0
+)
 
 # Feature columns used for training and testing
-feature_columns = ["MQ135", "MQ2", "MQ3", "MQ4", "MQ5", "MQ6", "MQ7", "MQ8", "MQ9"]
+feature_columns = [
+    "MQ135",
+    "MQ2",
+    "MQ3",
+    "MQ4",
+    "MQ5",
+    "MQ6",
+    "MQ7",
+    "MQ8",
+    "MQ9",
+    "BMPTemperature",
+    "Pressure(Pa)",
+    "DHTTemperature",
+    "Humidity",
+]
 
 # Target column from the training data
 target_column = "Target"
-y_train = train_data[[target_column]]
+y_train = train_data[target_column]
 
-# Fit the OneHotEncoder using the training data labels
-ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False).fit(y_train)
+# Fit the LabelEncoder using the training data labels
+label_encoder = LabelEncoder()
+label_encoder.fit(y_train)
 
 # Load the test data (the one you are testing the model on)
 test_data = pd.read_csv(
@@ -31,21 +48,28 @@ X_test = torch.tensor(X_test.values, dtype=torch.float32)
 class Multiclass(nn.Module):
     def __init__(self):
         super().__init__()
-        self.hidden = nn.Linear(X_test.shape[1], 8)  # Input layer for 9 features
+        self.hidden1 = nn.Linear(X_test.shape[1], 32)
+        self.bn1 = nn.BatchNorm1d(32)
+        self.hidden2 = nn.Linear(32, 16)
+        self.bn2 = nn.BatchNorm1d(16)
         self.act = nn.ReLU()
         self.output = nn.Linear(
-            8, ohe.categories_[0].size
-        )  # Use num_classes instead of 1
+            16, len(label_encoder.classes_)
+        )  # Use the number of classes from label encoder
+        self.dropout = nn.Dropout(0.5)  # 50% dropout rate
 
     def forward(self, x):
-        x = self.act(self.hidden(x))
-        x = self.output(x)
+        x = self.act(self.bn1(self.hidden1(x)))
+        x = self.dropout(self.act(self.bn2(self.hidden2(x))))
+        x = self.output(
+            x
+        )  # No need for softmax, as CrossEntropyLoss expects raw logits
         return x
 
 
 # Load the trained model
 model = Multiclass()
-model.load_state_dict(torch.load("wine_model.pth"))
+model.load_state_dict(torch.load("wine_multiclass_model.pth"))
 model.eval()
 
 # Make predictions on test data
@@ -55,23 +79,18 @@ with torch.no_grad():
 # Get the predicted class indices
 predicted_classes = torch.argmax(y_pred_test, dim=1)
 
-# Decode predictions back to wine labels
-wine_labels = ohe.categories_[
-    0
-]  # Extract labels from OneHotEncoder fitted on training data
+# Decode predictions back to wine labels using the LabelEncoder
+predicted_wine_names = label_encoder.inverse_transform(predicted_classes.cpu().numpy())
 
 # Print predicted wine labels for each test sample
 print("Predicted Wine Labels:")
-predicted_wine_names = []
-for i, pred_class in enumerate(predicted_classes):
-    wine_name = wine_labels[pred_class]
-    predicted_wine_names.append(wine_name)
+for i, wine_name in enumerate(predicted_wine_names):
     print(f"Sample {i+1}: {wine_name}")
 
-# Calculate and print the mode using numpy.unique
+# Calculate and print the mode (most frequent class) using numpy
 unique_wines, counts = np.unique(predicted_wine_names, return_counts=True)
 most_frequent_wine = unique_wines[np.argmax(counts)]
 
 print(
-    f"\nThe wine that appeared the most frequently is: {most_frequent_wine} (appeared {np.max(counts)} times)"
+    f"/nThe wine that appeared the most frequently is: {most_frequent_wine} (appeared {np.max(counts)} times)"
 )
