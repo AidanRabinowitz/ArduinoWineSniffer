@@ -2,170 +2,164 @@ import copy
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import tqdm
-from sklearn.model_selection import StratifiedKFold
-import joblib
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
 
-# Load training data
-data = pd.read_csv(
-    "ML/WineCSVs/Train/SixWinesData/SixWines2309(25degEnvTemp)_cleaned.csv",
-    header=0,
+# Read the training data and apply one-hot encoding
+train_data = pd.read_csv("ML/WineCSVs/TrainCSV.csv", header=0)
+
+X_train = train_data.iloc[:, 1:10]  # Features from columns 1 to 9
+y_train = train_data.iloc[:, [14]]  # Target in column 14
+ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False).fit(y_train)
+y_train = ohe.transform(y_train)  # One-hot encode the targets
+
+# Convert pandas DataFrame (X_train) and numpy array (y_train) into PyTorch tensors
+X_train = torch.tensor(X_train.values, dtype=torch.float32)
+y_train = torch.tensor(y_train, dtype=torch.float32)
+
+# Split the training data for training and validation
+X_train, X_val, y_train, y_val = train_test_split(
+    X_train, y_train, train_size=0.8, shuffle=True
 )
 
-feature_columns = [
-    "MQ135",
-    "MQ2",
-    "MQ3",
-    "MQ4",
-    "MQ5",
-    "MQ6",
-    "MQ7",
-    "MQ8",
-    "MQ9",
-]
-target_column = "Target"
-X = data[feature_columns]
-y = data[[target_column]]
-
-# Fit the LabelEncoder using the training data labels
-label_encoder = LabelEncoder()
-label_encoder.fit(y.values.ravel())
-joblib.dump(label_encoder, "label_encoder.pkl")  # Save the encoder
-ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False).fit(y)
-y = ohe.transform(y)
-
-# Convert pandas DataFrame (X) and numpy array (y) into PyTorch tensors
-X = torch.tensor(X.values, dtype=torch.float32)
-y = torch.tensor(y, dtype=torch.float32)
-
-# Determine the number of output classes dynamically
-num_outputs = y.shape[1]  # Number of columns after one-hot encoding
+# Get the number of output classes (one-hot encoded)
+num_outputs = y_train.shape[1]
 
 
 class Multiclass(nn.Module):
     def __init__(self):
         super().__init__()
-        self.hidden1 = nn.Linear(X.shape[1], 32)
-        self.bn1 = nn.BatchNorm1d(32)
-        self.hidden2 = nn.Linear(32, 16)
-        self.bn2 = nn.BatchNorm1d(16)
+        self.hidden = nn.Linear(X_train.shape[1], 8)  # Input layer
         self.act = nn.ReLU()
-        self.output = nn.Linear(16, num_outputs)
-        self.dropout = nn.Dropout(0.5)  # 50% dropout rate
+        self.output = nn.Linear(8, num_outputs)  # Output layer
 
     def forward(self, x):
-        x = self.act(self.bn1(self.hidden1(x)))
-        x = self.dropout(self.act(self.bn2(self.hidden2(x))))
+        x = self.act(self.hidden(x))
         x = self.output(x)
         return x
 
 
-# Loss metric and optimizer
+# Define model, loss function, and optimizer
 model = Multiclass()
 loss_fn = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-# Prepare model and training parameters
-n_epochs = 10
+# Training parameters
+n_epochs = 100
 batch_size = 5
+batches_per_epoch = len(X_train) // batch_size
 
-# Initialize Stratified K-Fold
-skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-
-# Prepare for metrics recording
+best_acc = -np.inf
+best_weights = None
 train_loss_hist = []
 train_acc_hist = []
-test_loss_hist = []
-test_acc_hist = []
+val_loss_hist = []
+val_acc_hist = []
 
-# Stratified K-Fold training
-for fold, (train_index, test_index) in enumerate(
-    skf.split(X.numpy(), y.argmax(axis=1))
-):
-    print(f"Fold {fold + 1}/{skf.n_splits}")
-    X_train, X_test = X[train_index], X[test_index]
-    y_train, y_test = y[train_index], y[test_index]
+# Training loop
+for epoch in range(n_epochs):
+    epoch_loss = []
+    epoch_acc = []
+    model.train()
+    with tqdm.trange(batches_per_epoch, unit="batch", mininterval=0) as bar:
+        bar.set_description(f"Epoch {epoch}")
+        for i in bar:
+            start = i * batch_size
+            X_batch = X_train[start : start + batch_size]
+            y_batch = y_train[start : start + batch_size]
 
-    best_acc = -np.inf  # Initialize best accuracy for this fold
-    best_weights = None
+            # Forward pass
+            y_pred = model(X_batch)
+            loss = loss_fn(y_pred, y_batch)
 
-    # Training loop for the current fold
-    for epoch in range(n_epochs):
-        model.train()
-        epoch_loss = []
-        epoch_acc = []
-        batches_per_epoch = len(X_train) // batch_size
+            # Backward pass and optimization
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
-        with tqdm.trange(batches_per_epoch, unit="batch", mininterval=0) as bar:
-            bar.set_description(f"Epoch {epoch}")
-            for i in bar:
-                # Take a batch
-                start = i * batch_size
-                X_batch = X_train[start : start + batch_size]
-                y_batch = y_train[start : start + batch_size]
+            # Compute accuracy
+            acc = (torch.argmax(y_pred, 1) == torch.argmax(y_batch, 1)).float().mean()
+            epoch_loss.append(float(loss))
+            epoch_acc.append(float(acc))
+            bar.set_postfix(loss=float(loss), acc=float(acc))
 
-                # Forward pass
-                y_pred = model(X_batch)
-                loss = loss_fn(y_pred, y_batch)
+    # Validation
+    model.eval()
+    with torch.no_grad():
+        y_pred_val = model(X_val)
+        val_loss = loss_fn(y_pred_val, y_val)
+        val_acc = (torch.argmax(y_pred_val, 1) == torch.argmax(y_val, 1)).float().mean()
 
-                # Backward pass
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
+    val_loss = float(val_loss)
+    val_acc = float(val_acc)
+    train_loss_hist.append(np.mean(epoch_loss))
+    train_acc_hist.append(np.mean(epoch_acc))
+    val_loss_hist.append(val_loss)
+    val_acc_hist.append(val_acc)
 
-                # Compute and store metrics
-                acc = (
-                    (torch.argmax(y_pred, 1) == torch.argmax(y_batch, 1)).float().mean()
-                )
-                epoch_loss.append(float(loss))
-                epoch_acc.append(float(acc))
-                bar.set_postfix(loss=float(loss), acc=float(acc))
+    if val_acc > best_acc:
+        best_acc = val_acc
+        best_weights = copy.deepcopy(model.state_dict())
 
-        # Evaluate on the test set
-        model.eval()
-        with torch.no_grad():
-            y_pred = model(X_test)
-            ce = loss_fn(y_pred, y_test)
-            acc = (torch.argmax(y_pred, 1) == torch.argmax(y_test, 1)).float().mean()
-            ce = float(ce)
-            acc = float(acc)
+    print(
+        f"Epoch {epoch}: Validation Loss = {val_loss:.2f}, Validation Accuracy = {val_acc*100:.1f}%"
+    )
 
-        train_loss_hist.append(np.mean(epoch_loss))
-        train_acc_hist.append(np.mean(epoch_acc))
-        test_loss_hist.append(ce)
-        test_acc_hist.append(acc)
-
-        if acc > best_acc:
-            best_acc = acc
-            best_weights = copy.deepcopy(model.state_dict())
-
-        print(
-            f"Epoch {epoch} validation: Cross-entropy={ce:.2f}, Accuracy={acc*100:.1f}%"
-        )
-
-    # Restore best model for the current fold
-    model.load_state_dict(best_weights)
+# Load the best weights
+model.load_state_dict(best_weights)
 
 # Save the trained model for later use
 torch.save(model.state_dict(), "wine_model.pth")
 
-# Plot the loss and accuracy
+# Plot training history
 plt.plot(train_loss_hist, label="train")
-plt.plot(test_loss_hist, label="test")
+plt.plot(val_loss_hist, label="val")
 plt.xlabel("epochs")
-plt.ylabel("cross entropy")
+plt.ylabel("loss")
 plt.legend()
 plt.show()
 
 plt.plot(train_acc_hist, label="train")
-plt.plot(test_acc_hist, label="test")
+plt.plot(val_acc_hist, label="val")
 plt.xlabel("epochs")
 plt.ylabel("accuracy")
 plt.legend()
 plt.show()
 
-print(f"Highest achieved accuracy across folds: {max(test_acc_hist) * 100:.2f}%")
+print(f"Highest achieved validation accuracy: {best_acc * 100:.2f}%")
+
+# Load new data (without target column) for prediction
+test_data = pd.read_csv("ML\WineCSVs\OldMoscatoWine.csv", header=0)
+X_test = test_data.iloc[:, 1:10]  # MQ sensor data (columns 1 to 9)
+
+# Convert to PyTorch tensor
+X_test = torch.tensor(X_test.values, dtype=torch.float32)
+
+# Load the trained model
+model = Multiclass()  # Assuming the Multiclass model is already defined
+model.load_state_dict(torch.load("wine_model.pth"))
+model.eval()
+
+X_test = test_data.iloc[:, 1:10]  # MQ sensor data (columns 1 to 9)
+
+# Convert to PyTorch tensor
+X_test = torch.tensor(X_test.values, dtype=torch.float32)
+
+# Make predictions
+with torch.no_grad():
+    y_pred_test = model(X_test)
+
+# Get the predicted class indices
+predicted_classes = torch.argmax(y_pred_test, dim=1)
+
+# Create a mapping of class indices to wine labels
+wine_labels = ohe.categories_[0]  # Assuming ohe is the OneHotEncoder from training
+
+# Print predicted wine labels
+print("Predicted Wine Labels:")
+for i, pred_class in enumerate(predicted_classes):
+    print(f"Sample {i+1}: {wine_labels[pred_class]}")

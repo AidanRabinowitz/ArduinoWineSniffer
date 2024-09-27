@@ -5,23 +5,24 @@ import joblib
 from sklearn.preprocessing import OneHotEncoder
 import numpy as np
 from collections import Counter
+from .WineSnifferDeepNetwork import num_outputs
+from .WineSnifferDeepNetwork import X_train
 
 
 # Load the model
 class Multiclass(nn.Module):
     def __init__(self):
         super().__init__()
-        self.hidden1 = nn.Linear(9, 32)  # Adjust input size to your feature count
-        self.bn1 = nn.BatchNorm1d(32)
-        self.hidden2 = nn.Linear(32, 16)
-        self.bn2 = nn.BatchNorm1d(16)
+        self.hidden = nn.Linear(
+            X_train.shape[1], 8
+        )  # Input layer size based on X columns
         self.act = nn.ReLU()
-        self.output = nn.Linear(16, 6)  # Adjust output size to your number of classes
-        self.dropout = nn.Dropout(0.5)
+        self.output = nn.Linear(
+            8, num_outputs
+        )  # Output layer size based on target classes
 
     def forward(self, x):
-        x = self.act(self.bn1(self.hidden1(x)))
-        x = self.dropout(self.act(self.bn2(self.hidden2(x))))
+        x = self.act(self.hidden(x))
         x = self.output(x)
         return x
 
@@ -31,7 +32,7 @@ train_data = pd.read_csv(
     "ML/WineCSVs/Train/SixWinesData/SixWines2309(25degEnvTemp)_cleaned.csv"
 )
 test_data = pd.read_csv(
-    "ML/WineCSVs/Test/Test2309/SophieTest2309(25degEnvTemp).csv"
+    "ML/WineCSVs/Test/ControlTests/namaqua2309control.csv"
 )  # Adjust path as necessary
 
 # Extract feature columns
