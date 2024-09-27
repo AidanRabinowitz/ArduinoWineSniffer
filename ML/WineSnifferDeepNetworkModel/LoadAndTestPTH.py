@@ -1,12 +1,42 @@
 import pandas as pd
+from sklearn.model_selection import train_test_split
 import torch
 import torch.nn as nn
 import joblib
 from sklearn.preprocessing import OneHotEncoder
 import numpy as np
 from collections import Counter
-from .WineSnifferDeepNetwork import num_outputs
-from .WineSnifferDeepNetwork import X_train
+
+# Train data
+data = pd.read_csv(
+    "ML/WineCSVs/Train/SixWinesData/SixWines2309(25degEnvTemp)_cleaned.csv",
+    header=0,
+)
+
+feature_columns = [
+    "MQ135",
+    "MQ2",
+    "MQ3",
+    "MQ4",
+    "MQ5",
+    "MQ6",
+    "MQ7",
+    "MQ8",
+    "MQ9",
+    # "BMPTemperature",
+    # "Pressure(Pa)",
+    # "DHTTemperature",
+    # "Humidity",
+]
+target_column = "Target"
+# For adjusted CSV (environmental control)
+X = data[feature_columns]
+y = data[[target_column]]
+ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False).fit(y)
+y = ohe.transform(y)
+y = torch.tensor(y, dtype=torch.float32)
+num_outputs = y.shape[1]  # Number of columns after one-hot encoding
+X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, shuffle=True)
 
 
 # Load the model
@@ -32,7 +62,7 @@ train_data = pd.read_csv(
     "ML/WineCSVs/Train/SixWinesData/SixWines2309(25degEnvTemp)_cleaned.csv"
 )
 test_data = pd.read_csv(
-    "ML/WineCSVs/Test/ControlTests/namaqua2309control.csv"
+    "ML/WineCSVs/Test/ControlTests/TallHorse2309control.csv"
 )  # Adjust path as necessary
 
 # Extract feature columns
