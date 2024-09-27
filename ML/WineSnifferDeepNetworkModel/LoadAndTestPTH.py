@@ -4,31 +4,34 @@ import torch.nn as nn
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 
-# Load the training data to fit the LabelEncoder (to map predictions back to class labels)
-train_data = pd.read_csv(
-    "ML/WineCSVs/Train/SixWinesData/SixWinesCombined.csv", header=0
-)
+from WineSnifferDeepNetwork import data, feature_columns, Multiclass
 
-# Feature columns used for training and testing
-feature_columns = [
-    "MQ135",
-    "MQ2",
-    "MQ3",
-    "MQ4",
-    "MQ5",
-    "MQ6",
-    "MQ7",
-    "MQ8",
-    "MQ9",
-    "BMPTemperature",
-    "Pressure(Pa)",
-    "DHTTemperature",
-    "Humidity",
-]
 
-# Target column from the training data
-target_column = "Target"
-y_train = train_data[target_column]
+# # Load the training data to fit the LabelEncoder (to map predictions back to class labels)
+# train_data = pd.read_csv(
+#     "ML/WineCSVs/Train/SixWinesData/SixWinesCombined.csv", header=0
+# )
+
+# # Feature columns used for training and testing
+# feature_columns = [
+#     "MQ135",
+#     "MQ2",
+#     "MQ3",
+#     "MQ4",
+#     "MQ5",
+#     "MQ6",
+#     "MQ7",
+#     "MQ8",
+#     "MQ9",
+#     "BMPTemperature",
+#     "Pressure(Pa)",
+#     "DHTTemperature",
+#     "Humidity",
+# ]
+
+# # Target column from the training data
+# target_column = "Target"
+y_train = data["Target"]
 
 # Fit the LabelEncoder using the training data labels
 label_encoder = LabelEncoder()
@@ -36,7 +39,7 @@ label_encoder.fit(y_train)
 
 # Load the test data (the one you are testing the model on)
 test_data = pd.read_csv(
-    "ML/WineCSVs/Test/Test2509/TallHorseTest2509(20degEnvTemp).csv", header=0
+    "ML/WineCSVs/Test/ControlTests/TallHorse2509(20degEnvTemp)_control.csv", header=0
 )
 X_test = test_data[feature_columns]
 
@@ -44,32 +47,9 @@ X_test = test_data[feature_columns]
 X_test = torch.tensor(X_test.values, dtype=torch.float32)
 
 
-# Define the same model architecture used in training
-class Multiclass(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.hidden1 = nn.Linear(X_test.shape[1], 32)
-        self.bn1 = nn.BatchNorm1d(32)
-        self.hidden2 = nn.Linear(32, 16)
-        self.bn2 = nn.BatchNorm1d(16)
-        self.act = nn.ReLU()
-        self.output = nn.Linear(
-            16, len(label_encoder.classes_)
-        )  # Use the number of classes from label encoder
-        self.dropout = nn.Dropout(0.5)  # 50% dropout rate
-
-    def forward(self, x):
-        x = self.act(self.bn1(self.hidden1(x)))
-        x = self.dropout(self.act(self.bn2(self.hidden2(x))))
-        x = self.output(
-            x
-        )  # No need for softmax, as CrossEntropyLoss expects raw logits
-        return x
-
-
 # Load the trained model
 model = Multiclass()
-model.load_state_dict(torch.load("wine_multiclass_model.pth"))
+model.load_state_dict(torch.load("wine_model.pth"))
 model.eval()
 
 # Make predictions on test data
@@ -92,5 +72,5 @@ unique_wines, counts = np.unique(predicted_wine_names, return_counts=True)
 most_frequent_wine = unique_wines[np.argmax(counts)]
 
 print(
-    f"/nThe wine that appeared the most frequently is: {most_frequent_wine} (appeared {np.max(counts)} times)"
+    f"\nThe wine that appeared the most frequently is: {most_frequent_wine} (appeared {np.max(counts)} times)"
 )

@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 
 # Train data
 data = pd.read_csv(
-    "ML\WineCSVs\Train\SixWinesData\SixWinesCombined.csv",
+    "ML\WineCSVs\Train\SixWinesData\SixWines2509(20degEnvTemp).csv_cleaned.csv",
     header=0,
 )
 
@@ -27,7 +27,7 @@ feature_columns = [
     "MQ8",
     "MQ9",
     "BMPTemperature",
-    # "Pressure(Pa)",
+    "Pressure(Pa)",
     # "DHTTemperature",
     # "Humidity",
 ]

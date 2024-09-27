@@ -62,10 +62,8 @@ def remove_invalid_rows(file_path, output_cleaned_csv):
     return cleaned_data
 
 
-input_csv = "ML\WineCSVs\Train\SixWinesData\SixWines2509(20degEnvTemp).csv"
-cleaned_csv = (
-    "ML\WineCSVs\Train\SixWinesData\SixWines2509(20degEnvTemp).csv_cleaned.csv"
-)
+input_csv = "ML\WineCSVs\Train\SixWinesData\SixWinesCombined.csv"
+cleaned_csv = "ML\WineCSVs\Train\SixWinesData\SixWinesCombined_cleaned.csv"
 
 cleaned_data = remove_invalid_rows(input_csv, cleaned_csv)
 print(f"Cleaned data saved to {cleaned_csv}")
