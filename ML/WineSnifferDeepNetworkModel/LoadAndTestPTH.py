@@ -62,7 +62,7 @@ train_data = pd.read_csv(
     "ML/WineCSVs/Train/SixWinesData/SixWines2309(25degEnvTemp)_cleaned.csv"
 )
 test_data = pd.read_csv(
-    "ML/WineCSVs/Test/ControlTests/TallHorse2309control.csv"
+    "ML/WineCSVs/Test/ControlTests/namaqua2309control.csv"
 )  # Adjust path as necessary
 
 # Extract feature columns
