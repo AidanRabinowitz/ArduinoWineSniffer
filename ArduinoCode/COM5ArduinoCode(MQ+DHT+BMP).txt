@@ -66,5 +66,5 @@ void loop() {
 
   Serial.println();
 
-  delay(100); // Wait 0.1 second before the next reading
+  delay(10); // Wait 0.1 second before the next reading
 }

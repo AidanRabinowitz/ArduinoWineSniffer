@@ -9,7 +9,7 @@ MQSensorData = []
 # AIDAN COM3 = JESS COM4
 
 
-def load_data_from_file(filename="NamaquaTest2509(20degEnvTemp).csv"):
+def load_data_from_file(filename="warmuptest(20degEnvTemp).csv"):
     try:
         with open(filename, "r") as f:
             reader = csv.DictReader(f)
@@ -18,7 +18,7 @@ def load_data_from_file(filename="NamaquaTest2509(20degEnvTemp).csv"):
         return []
 
 
-def save_data_to_file(data, filename="NamaquaTest2509(20degEnvTemp).csv"):
+def save_data_to_file(data, filename="warmuptest(20degEnvTemp).csv"):
     with open(filename, "w", newline="") as f:
         fieldnames = [
             "yyyy-mm-dd timestamp",
@@ -94,7 +94,7 @@ def read_serial_data(ports=["COM3", "COM5"], baudrate=9600, save_interval=1):
                     sensor_data.update(data2)
 
                     # Add the hardcoded "Target" value
-                    sensor_data["Target"] = "NamaquaTest2509(20degEnvTemp)"
+                    sensor_data["Target"] = "warmuptest(20degEnvTemp)"
 
                     MQSensorData.append(sensor_data)
                     print(MQSensorData[-1])  # Print the latest entry to verify
@@ -108,7 +108,7 @@ def read_serial_data(ports=["COM3", "COM5"], baudrate=9600, save_interval=1):
                         entry_count = 0  # Reset the counter
 
             # Wait 0.5 seconds before reading the next set of data
-            time.sleep(0.5)
+            # time.sleep(0.5)
 
     except KeyboardInterrupt:
         print("Exiting...")

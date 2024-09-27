@@ -3,44 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wine Sniffer Predictions</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <title>Wine Prediction</title>
 </head>
 <body>
-    <div id="loading" style="display:none;">Loading...</div>
-    <h1>Wine Sniffer Model</h1>
-    
-    <button id="predict-button">Get Predictions</button>
-
+    <h1>Wine Prediction Results</h1>
+    <button id="predictButton">Predict Wines</button>
     <div id="results"></div>
 
     <script>
-        document.getElementById("predict-button").addEventListener("click", function() {
-            document.getElementById("loading").style.display = "block";  // Show loading screen
-
-            fetch('/predict', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById("loading").style.display = "none";  // Hide loading screen
-                if (data.error) {
-                    document.getElementById("results").innerHTML = '<p>Error: ' + data.error + '</p>';
-                } else {
-                    let resultHTML = '<h2>Predicted Wine Labels:</h2>';
-                    resultHTML += '<ul>';
-                    data.wine_labels.forEach(label => {
-                        resultHTML += '<li>' + label + '</li>';
-                    });
-                    resultHTML += '</ul>';
-                    document.getElementById("results").innerHTML = resultHTML;
-                }
-            })
-            .catch(error => {
-                document.getElementById("loading").style.display = "none";  // Hide loading screen
-                document.getElementById("results").innerHTML = '<p>Error: ' + error.message + '</p>';
-            });
+        document.getElementById("predictButton").addEventListener("click", function() {
+            fetch("/predict", { method: "POST" })
+                .then(response => response.json())
+                .then(data => {
+                    const resultDiv = document.getElementById("results");
+                    resultDiv.innerHTML = `
+                        <h2>Predicted Wines:</h2>
+                        <p>${data.wine_labels.join(", ")}</p>
+                        <h2>Most Frequent Wine:</h2>
+                        <p>${data.most_frequent_wine} (appeared ${data.count} times)</p>
+                    `;
+                });
         });
     </script>
 </body>

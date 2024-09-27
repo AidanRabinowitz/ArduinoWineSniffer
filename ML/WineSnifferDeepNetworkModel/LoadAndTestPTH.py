@@ -19,7 +19,7 @@ ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False).fit(y_train)
 
 # Load the test data (the one you are testing the model on)
 test_data = pd.read_csv(
-    "ML/WineCSVs/Test/Test2509/SophieTest2509(20degEnvTemp).csv", header=0
+    "ML/WineCSVs/Test/Test2509/TallHorseTest2509(20degEnvTemp).csv", header=0
 )
 X_test = test_data[feature_columns]
 

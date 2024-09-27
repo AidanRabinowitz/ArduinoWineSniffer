@@ -3,12 +3,12 @@ import pandas as pd
 import torch
 import torch.nn as nn
 from sklearn.preprocessing import OneHotEncoder
-import copy
+import numpy as np
 
 app = Flask(__name__)
 
 # Load and prepare the model and encoders globally
-train_data = pd.read_csv("ML/WineCSVs/TrainCSV.csv", header=0)
+train_data = pd.read_csv("SixWines2509(20degEnvTemp)cleaned.csv", header=0)
 
 X_train = train_data.iloc[:, 1:10]  # Features from columns 1 to 9
 y_train = train_data.iloc[:, [14]]  # Target in column 14
@@ -69,8 +69,18 @@ def predict():
         wine_labels = ohe.categories_[0]  # Map indices to original labels
         predicted_wine_labels = [wine_labels[idx] for idx in predicted_classes]
 
-        # Return the predicted wine labels as JSON
-        return jsonify({"wine_labels": predicted_wine_labels})
+        # Calculate the most frequent wine (modal wine)
+        unique_wines, counts = np.unique(predicted_wine_labels, return_counts=True)
+        most_frequent_wine = unique_wines[np.argmax(counts)]
+
+        # Return the predicted wine labels and modal wine as JSON
+        return jsonify(
+            {
+                "wine_labels": predicted_wine_labels,
+                "most_frequent_wine": most_frequent_wine,
+                "count": int(np.max(counts)),
+            }
+        )
 
     except Exception as e:
         return jsonify({"error": str(e)})
