@@ -1,24 +1,45 @@
 import os
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy import stats
 
 
 class DataCleaner:
-    def __init__(self, input_folder, output_file, cleaning_method='z_score'):
+    def __init__(self, input_folder=None, cleaning_method='z_score'):
+        """
+        Constructor with optional parameters for initialization.
+        Allows default initialization without inputs.
+        """
         self.input_folder = input_folder
-        self.output_file = output_file
-        # 'z_score' for training, 'iqr' for testing
         self.cleaning_method = cleaning_method
 
+    # Setters and Getters for input_folder
+    def set_input_folder(self, input_folder):
+        self.input_folder = input_folder
+
+    def get_input_folder(self):
+        return self.input_folder
+
+    # Setters and Getters for cleaning_method
+    def set_cleaning_method(self, cleaning_method):
+        self.cleaning_method = cleaning_method
+
+    def get_cleaning_method(self):
+        return self.cleaning_method
+
     def clean_data(self):
+        """
+        Cleans the data from all CSV files in the input folder.
+        Returns a cleaned DataFrame.
+        """
         # Initialize an empty dataframe to store all cleaned data
         all_cleaned_data = pd.DataFrame()
 
         # Loop through all CSV files in the folder
         for filename in os.listdir(self.input_folder):
             if filename.endswith(".csv"):
-                print(filename)
+                print(f"Processing file: {filename}")
                 file_path = os.path.join(self.input_folder, filename)
                 df = pd.read_csv(file_path)
 
@@ -27,10 +48,18 @@ class DataCleaner:
 
                 # Append the cleaned data to the final dataframe
                 all_cleaned_data = pd.concat([all_cleaned_data, cleaned_df])
+                print("____________________")
 
-        # Save the final cleaned dataframe to the output file
-        all_cleaned_data.to_csv(self.output_file, index=False)
-        print(f"All cleaned data saved to {self.output_file}")
+        print(
+            f"Data cleaning complete. Rows in cleaned data: {len(all_cleaned_data)}")
+        return all_cleaned_data
+
+    def save_cleaned_data(self, cleaned_df, output_file):
+        """
+        Saves the cleaned DataFrame to a specified output file.
+        """
+        cleaned_df.to_csv(output_file, index=False)
+        print(f"Cleaned data saved to {output_file}")
 
     def _clean_individual_file(self, df):
         print(f"Original number of rows: {len(df)}")
@@ -80,3 +109,23 @@ class DataCleaner:
             df = df[~((df[col] < (Q1 - 1.5 * IQR)) |
                       (df[col] > (Q3 + 1.5 * IQR)))]
         return df
+
+    def plot_histograms(self, df):
+        """
+        Generates histograms for sensor data, color-coded by 'Target'.
+        """
+        sensor_columns = [col for col in df.columns if col.startswith('MQ')]
+        target_values = df['Target'].unique()
+
+        for col in sensor_columns:
+            plt.figure(figsize=(10, 6))
+            for target in target_values:
+                subset = df[df['Target'] == target]
+                plt.hist(subset[col], bins=30, alpha=0.5,
+                         label=f'Target {target}')
+
+            plt.title(f'Distribution of {col} values by Target')
+            plt.xlabel(f'{col} Value')
+            plt.ylabel('Frequency')
+            plt.legend()
+            plt.show()
