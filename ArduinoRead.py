@@ -5,12 +5,10 @@ import csv
 # Initialize the list to store data
 MQSensorData = []
 
-# AIDAN COM5 = JESS COM3
-# AIDAN COM3 = JESS COM4
 
-
-def load_data_from_file(filename="warmuptest(20degEnvTemp).csv"):
+def load_data_from_file(filename="BlackTieR2_3009(20degEnvTemp).csv"):
     try:
+
         with open(filename, "r") as f:
             reader = csv.DictReader(f)
             return list(reader)
@@ -18,19 +16,19 @@ def load_data_from_file(filename="warmuptest(20degEnvTemp).csv"):
         return []
 
 
-def save_data_to_file(data, filename="warmuptest(20degEnvTemp).csv"):
+def save_data_to_file(data, filename="BlackTieR2_3009(20degEnvTemp).csv"):
     with open(filename, "w", newline="") as f:
         fieldnames = [
             "yyyy-mm-dd timestamp",
-            "MQ6",  #
+            "MQ6",
             "MQ5",
             "MQ4",
             "MQ7",
-            "MQ3",  #
-            "MQ8",  #
-            "MQ2",  #
-            "MQ135",  #
-            "MQ9",  #
+            "MQ3",  # COM3
+            "MQ8",
+            "MQ2",
+            "MQ135",
+            "MQ9",  # COM5
             "BMPTemperature",
             "Pressure(Pa)",
             "DHTTemperature",
@@ -42,59 +40,48 @@ def save_data_to_file(data, filename="warmuptest(20degEnvTemp).csv"):
         writer.writerows(data)
 
 
-def parse_sensor_data(line, port):
+def parse_sensor_data(line):
     try:
         data_dict = {}
         sensors = line.split(",")
-        if port == "COM3":
-            data_dict = {
-                "MQ6": sensors[0].split(":")[1],  # COM3 A0
-                "MQ5": sensors[1].split(":")[1],  # COM3 A1
-                "MQ4": sensors[2].split(":")[1],  # COM3 A2
-                "MQ7": sensors[3].split(":")[1],  # COM3 A3
-                "MQ3": sensors[4].split(":")[1],  # COM3 A4
-            }
-        elif port == "COM5":
-            data_dict = {
-                "MQ8": sensors[0].split(":")[1],  # COM5 A0
-                "MQ2": sensors[1].split(":")[1],  # COM5 A1
-                "MQ135": sensors[2].split(":")[1],  # COM5 A2
-                "MQ9": sensors[3].split(":")[1],  # COM5 A3
-                "BMPTemperature": sensors[4].split(":")[1],  # COM5 A4
-                "Pressure(Pa)": sensors[5].split(":")[1],  # COM5 A5
-                "DHTTemperature": sensors[6].split(":")[1],  # COM5 A6
-                "Humidity": sensors[7].split(":")[1],  # COM5 A7
-            }
+        data_dict = {
+            "MQ6": sensors[0].split(":")[1],  # COM3 A0
+            "MQ5": sensors[1].split(":")[1],  # COM3 A1
+            "MQ4": sensors[2].split(":")[1],  # COM3 A2
+            "MQ7": sensors[3].split(":")[1],  # COM3 A3
+            "MQ3": sensors[4].split(":")[1],  # COM3 A4
+            "MQ8": sensors[5].split(":")[1],  # COM5 A5
+            "MQ2": sensors[6].split(":")[1],  # COM5 A6
+            "MQ135": sensors[7].split(":")[1],  # COM5 A7
+            "MQ9": sensors[8].split(":")[1],  # COM5 A8
+            "BMPTemperature": sensors[9].split(":")[1],  # BMP temperature
+            "Pressure(Pa)": sensors[10].split(":")[1],  # Pressure
+            "DHTTemperature": sensors[11].split(":")[1],  # DHT temperature
+            "Humidity": sensors[12].split(":")[1],  # Humidity
+        }
         return data_dict
     except IndexError:
-        print(f"Error: Line format incorrect from {port}: {line}")
+        print(f"Error: Line format incorrect: {line}")
         return None
 
 
-def read_serial_data(ports=["COM3", "COM5"], baudrate=9600, save_interval=1):
-    ser1 = serial.Serial(ports[0], baudrate)  # COM3
-    ser2 = serial.Serial(ports[1], baudrate)  # COM5
-    # time.sleep(2)  # Allow some time for the connection to establish
-
+def read_serial_data(port="COM6", baudrate=115200, save_interval=1):
+    ser = serial.Serial(port, baudrate)
     entry_count = 0  # Counter for entries to manage save interval
 
     try:
         while True:
-            if ser1.in_waiting > 0 and ser2.in_waiting > 0:
-                line1 = ser1.readline().decode("utf-8").rstrip()
-                line2 = ser2.readline().decode("utf-8").rstrip()
+            if ser.in_waiting > 0:
+                line = ser.readline().decode("utf-8").rstrip()
+                data = parse_sensor_data(line)
 
-                data1 = parse_sensor_data(line1, ports[0])
-                data2 = parse_sensor_data(line2, ports[1])
-
-                if data1 and data2:
+                if data:
                     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")  # Get current time
                     sensor_data = {"yyyy-mm-dd timestamp": timestamp}
-                    sensor_data.update(data1)
-                    sensor_data.update(data2)
+                    sensor_data.update(data)
 
                     # Add the hardcoded "Target" value
-                    sensor_data["Target"] = "warmuptest(20degEnvTemp)"
+                    sensor_data["Target"] = "BlackTieR2_3009(20degEnvTemp)"
 
                     MQSensorData.append(sensor_data)
                     print(MQSensorData[-1])  # Print the latest entry to verify
@@ -107,7 +94,7 @@ def read_serial_data(ports=["COM3", "COM5"], baudrate=9600, save_interval=1):
                         save_data_to_file(MQSensorData)
                         entry_count = 0  # Reset the counter
 
-            # Wait 0.5 seconds before reading the next set of data
+            # # Wait 0.5 seconds before reading the next set of data
             # time.sleep(0.5)
 
     except KeyboardInterrupt:
@@ -115,12 +102,11 @@ def read_serial_data(ports=["COM3", "COM5"], baudrate=9600, save_interval=1):
     except Exception as e:
         print(f"Error: {e}")
     finally:
-        ser1.close()
-        ser2.close()
+        ser.close()
         save_data_to_file(MQSensorData)  # Ensure data is saved when exiting
 
 
 if __name__ == "__main__":
     # Load existing data
     MQSensorData = load_data_from_file()
-    read_serial_data(ports=["COM5", "COM3"], baudrate=9600)
+    read_serial_data(port="COM6", baudrate=115200)

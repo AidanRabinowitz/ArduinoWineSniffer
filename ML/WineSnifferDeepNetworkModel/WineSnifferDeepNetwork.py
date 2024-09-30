@@ -14,7 +14,7 @@ import joblib
 
 # Train data
 data = pd.read_csv(
-    "ML/WineCSVs/Train/SixWinesData/SixWines2309(25degEnvTemp)_cleaned.csv",
+    "ML/WineCSVs/Train/SixWinesData/SixWines2509(20degEnvTemp).csv_cleaned.csv",
     header=0,
 )
 
@@ -51,8 +51,7 @@ y = torch.tensor(y, dtype=torch.float32)
 # X = torch.nn.functional.normalize(X, p=1.0, dim=1)
 # y = torch.nn.functional.normalize(y, p=1.0, dim=1)
 # split
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, train_size=0.8, shuffle=True)
+X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, shuffle=True)
 
 
 # Determine the number of output classes dynamically
@@ -63,11 +62,11 @@ class Multiclass(nn.Module):
     def __init__(self):
         super().__init__()
         self.hidden = nn.Linear(
-            X_train.shape[1], 8
+            X_train.shape[1], 32
         )  # Input layer size based on X columns
         self.act = nn.ReLU()
         self.output = nn.Linear(
-            8, num_outputs
+            32, num_outputs
         )  # Output layer size based on target classes
 
     def forward(self, x):
@@ -122,8 +121,8 @@ for epoch in range(n_epochs):
         for i in bar:
             # take a batch
             start = i * batch_size
-            X_batch = X_train[start: start + batch_size]
-            y_batch = y_train[start: start + batch_size]
+            X_batch = X_train[start : start + batch_size]
+            y_batch = y_train[start : start + batch_size]
             # forward pass
             y_pred = model(X_batch)
             loss = loss_fn(y_pred, y_batch)
@@ -133,8 +132,7 @@ for epoch in range(n_epochs):
             # update weights
             optimizer.step()
             # compute and store metrics
-            acc = (torch.argmax(y_pred, 1) ==
-                   torch.argmax(y_batch, 1)).float().mean()
+            acc = (torch.argmax(y_pred, 1) == torch.argmax(y_batch, 1)).float().mean()
             epoch_loss.append(float(loss))
             epoch_acc.append(float(acc))
             bar.set_postfix(loss=float(loss), acc=float(acc))
@@ -152,8 +150,7 @@ for epoch in range(n_epochs):
     if acc > best_acc:
         best_acc = acc
         best_weights = copy.deepcopy(model.state_dict())
-    print(
-        f"Epoch {epoch} validation: Cross-entropy={ce:.2f}, Accuracy={acc*100:.1f}%")
+    print(f"Epoch {epoch} validation: Cross-entropy={ce:.2f}, Accuracy={acc*100:.1f}%")
 
     # Restore best model
 model.load_state_dict(best_weights)

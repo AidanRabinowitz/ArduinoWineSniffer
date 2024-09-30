@@ -1,34 +1,20 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, request, jsonify
 import pandas as pd
 import torch
 import torch.nn as nn
-from sklearn.preprocessing import OneHotEncoder
-import numpy as np
+import joblib
+from collections import Counter
 
 app = Flask(__name__)
-
-# Load and prepare the model and encoders globally
-train_data = pd.read_csv("SixWines2509(20degEnvTemp)cleaned.csv", header=0)
-
-X_train = train_data.iloc[:, 1:10]  # Features from columns 1 to 9
-y_train = train_data.iloc[:, [14]]  # Target in column 14
-
-# One-hot encode the target
-ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False).fit(y_train)
-y_train = ohe.transform(y_train)  # One-hot encode the targets
-
-# Convert pandas DataFrame (X_train) and numpy array (y_train) into PyTorch tensors
-X_train = torch.tensor(X_train.values, dtype=torch.float32)
-y_train = torch.tensor(y_train, dtype=torch.float32)
 
 
 # Define the PyTorch model
 class Multiclass(nn.Module):
     def __init__(self):
         super().__init__()
-        self.hidden = nn.Linear(X_train.shape[1], 8)  # Input layer (9 features)
+        self.hidden = nn.Linear(9, 32)  # Assuming 9 input features (like MQ135, MQ2...)
         self.act = nn.ReLU()
-        self.output = nn.Linear(8, y_train.shape[1])  # Output layer
+        self.output = nn.Linear(32, 6)  # Assuming 6 wine classes
 
     def forward(self, x):
         x = self.act(self.hidden(x))
@@ -36,54 +22,38 @@ class Multiclass(nn.Module):
         return x
 
 
-# Load pre-trained model
+# Load model and label encoder
 model = Multiclass()
-model.load_state_dict(torch.load("wine_model.pth"))
+model.load_state_dict(torch.load("../wine_model.pth"))
 model.eval()
 
-
-# Flask routes
-@app.route("/")
-def index():
-    return render_template("index.html")
+label_encoder = joblib.load("../label_encoder.pkl")
+class_names = label_encoder.classes_
 
 
-@app.route("/predict", methods=["POST"])
-def predict():
-    try:
-        # Load the test CSV data (ensure it has the correct number of columns)
-        test_data = pd.read_csv("ML/TestCSVs/TestCSV_no_target.csv", header=0)
-        X_test = test_data.iloc[:, 1:10]  # Ensure it has 9 features (columns 1-9)
+# Define a route to get the modal classification
+@app.route("/classify", methods=["POST"])
+def classify_wine():
+    # Load input data from request
+    data = request.json
+    df = pd.DataFrame(data)
 
-        # Convert to PyTorch tensor
-        X_test = torch.tensor(X_test.values, dtype=torch.float32)
+    # Convert to tensor
+    X_test_tensor = torch.tensor(df.values, dtype=torch.float32)
 
-        # Make predictions
-        with torch.no_grad():
-            y_pred_test = model(X_test)
+    # Predict
+    with torch.no_grad():
+        y_pred = model(X_test_tensor)
+        predicted_classes = torch.argmax(y_pred, dim=1).numpy()
 
-        # Get the predicted class indices
-        predicted_classes = torch.argmax(y_pred_test, dim=1)
+    # Map indices to class names
+    predicted_class_names = label_encoder.inverse_transform(predicted_classes)
 
-        # Convert predictions back to wine labels (class names)
-        wine_labels = ohe.categories_[0]  # Map indices to original labels
-        predicted_wine_labels = [wine_labels[idx] for idx in predicted_classes]
+    # Calculate modal class
+    modal_class = Counter(predicted_class_names).most_common(1)[0][0]
 
-        # Calculate the most frequent wine (modal wine)
-        unique_wines, counts = np.unique(predicted_wine_labels, return_counts=True)
-        most_frequent_wine = unique_wines[np.argmax(counts)]
-
-        # Return the predicted wine labels and modal wine as JSON
-        return jsonify(
-            {
-                "wine_labels": predicted_wine_labels,
-                "most_frequent_wine": most_frequent_wine,
-                "count": int(np.max(counts)),
-            }
-        )
-
-    except Exception as e:
-        return jsonify({"error": str(e)})
+    # Return modal classification
+    return jsonify({"modal_class": modal_class})
 
 
 if __name__ == "__main__":

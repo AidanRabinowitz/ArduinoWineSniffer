@@ -8,8 +8,8 @@ import numpy as np
 from collections import Counter
 
 # Train data
-data = pd.read_csv(
-    "ML/WineCSVs/Train/SixWinesData/SixWines2309(25degEnvTemp)_cleaned.csv",
+train_data = pd.read_csv(
+    "ML/WineCSVs/Train/SixWinesData/SixWines2509(20degEnvTemp).csv_cleaned.csv",
     header=0,
 )
 
@@ -30,8 +30,8 @@ feature_columns = [
 ]
 target_column = "Target"
 # For adjusted CSV (environmental control)
-X = data[feature_columns]
-y = data[[target_column]]
+X = train_data[feature_columns]
+y = train_data[[target_column]]
 ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False).fit(y)
 y = ohe.transform(y)
 y = torch.tensor(y, dtype=torch.float32)
@@ -39,16 +39,15 @@ num_outputs = y.shape[1]  # Number of columns after one-hot encoding
 X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, shuffle=True)
 
 
-# Load the model
 class Multiclass(nn.Module):
     def __init__(self):
         super().__init__()
         self.hidden = nn.Linear(
-            X_train.shape[1], 8
+            X_train.shape[1], 32
         )  # Input layer size based on X columns
         self.act = nn.ReLU()
         self.output = nn.Linear(
-            8, num_outputs
+            32, num_outputs
         )  # Output layer size based on target classes
 
     def forward(self, x):
@@ -58,11 +57,8 @@ class Multiclass(nn.Module):
 
 
 # Load data
-train_data = pd.read_csv(
-    "ML/WineCSVs/Train/SixWinesData/SixWines2309(25degEnvTemp)_cleaned.csv"
-)
 test_data = pd.read_csv(
-    "ML/WineCSVs/Test/ControlTests/sophie2309control.csv"
+    "ML/WineCSVs/Test/Test2509/NamaquaTest2509(20degEnvTemp).csv"
 )  # Adjust path as necessary
 
 # Extract feature columns
