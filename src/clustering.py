@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import LabelEncoder
 
 
 class ClusteringTechniques:
@@ -58,6 +59,43 @@ class ClusteringTechniques:
         plt.scatter(self.features[:, 0],
                     self.features[:, 1], c=labels, cmap='viridis')
         plt.title(title)
+        plt.show()
+
+    def encode_target(self):
+        """
+        Encodes the target column (wine labels) into numeric values.
+        :return: A DataFrame with the encoded target column.
+        """
+        label_encoder = LabelEncoder()
+        encoded_target = label_encoder.fit_transform(self.target)
+        encoded_df = self.df.copy()
+        encoded_df['EncodedTarget'] = encoded_target
+        return encoded_df
+
+    def visualize_with_targets(self, labels, title):
+        """
+        Visualize the clusters alongside the encoded target variable (wine types).
+        :param labels: Cluster labels from the clustering technique.
+        :param title: Title for the plot.
+        """
+        # Get the encoded DataFrame
+        encoded_df = self.encode_target()
+
+        fig, axes = plt.subplots(1, 2, figsize=(12, 6))
+
+        # Plotting the clusters
+        scatter = axes[0].scatter(
+            self.features[:, 0], self.features[:, 1], c=labels, cmap='tab10')
+        axes[0].set_title('Clusters')
+        plt.colorbar(scatter, ax=axes[0], label="Cluster")
+
+        # Plotting the encoded target values (wine types)
+        scatter = axes[1].scatter(
+            self.features[:, 0], self.features[:, 1], c=encoded_df['EncodedTarget'], cmap='tab10')
+        axes[1].set_title('Target Variables (Wine Types)')
+        plt.colorbar(scatter, ax=axes[1], label="Wine Type")
+
+        plt.suptitle(title)
         plt.show()
 
     def evaluate_with_target(self, labels):
