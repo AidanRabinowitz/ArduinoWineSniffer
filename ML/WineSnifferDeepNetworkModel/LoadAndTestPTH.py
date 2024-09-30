@@ -8,8 +8,13 @@ import numpy as np
 from collections import Counter
 
 # Train data
+<<<<<<< HEAD
 train_data = pd.read_csv(
     "ML/WineCSVs/Train/SixWinesData/SixWines2509(20degEnvTemp).csv_cleaned.csv",
+=======
+data = pd.read_csv(
+    "ArduinoWineSniffer/ML/WineCSVs/Train/SixWinesData/SixWines2309(25degEnvTemp)_cleaned.csv",
+>>>>>>> e2cb158e4f8491296dcfbd4ba5f7068e94bef691
     header=0,
 )
 
@@ -36,7 +41,8 @@ ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False).fit(y)
 y = ohe.transform(y)
 y = torch.tensor(y, dtype=torch.float32)
 num_outputs = y.shape[1]  # Number of columns after one-hot encoding
-X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, shuffle=True)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, train_size=0.8, shuffle=True)
 
 
 class Multiclass(nn.Module):
@@ -58,11 +64,16 @@ class Multiclass(nn.Module):
 
 # Load data
 test_data = pd.read_csv(
+<<<<<<< HEAD
     "ML/WineCSVs/Test/Test2509/NamaquaTest2509(20degEnvTemp).csv"
+=======
+    "ArduinoWineSniffer/ML/WineCSVs/Test/Test2309/SophieTest2309(25degEnvTemp).csv"
+>>>>>>> e2cb158e4f8491296dcfbd4ba5f7068e94bef691
 )  # Adjust path as necessary
 
 # Extract feature columns
-feature_columns = ["MQ135", "MQ2", "MQ3", "MQ4", "MQ5", "MQ6", "MQ7", "MQ8", "MQ9"]
+feature_columns = ["MQ135", "MQ2", "MQ3",
+                   "MQ4", "MQ5", "MQ6", "MQ7", "MQ8", "MQ9"]
 X_test = test_data[feature_columns]
 
 # Load the trained model and the label encoder

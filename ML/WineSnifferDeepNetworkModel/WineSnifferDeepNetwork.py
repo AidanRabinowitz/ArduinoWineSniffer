@@ -14,7 +14,11 @@ import joblib
 
 # Train data
 data = pd.read_csv(
+<<<<<<< HEAD
     "ML/WineCSVs/Train/SixWinesData/SixWines2509(20degEnvTemp).csv_cleaned.csv",
+=======
+    "ArduinoWineSniffer/ML/WineCSVs/Train/SixWinesData/SixWines2309(25degEnvTemp)_cleaned.csv",
+>>>>>>> e2cb158e4f8491296dcfbd4ba5f7068e94bef691
     header=0,
 )
 
