@@ -9,7 +9,7 @@ from collections import Counter
 
 # Train data
 data = pd.read_csv(
-    "ML/WineCSVs/Train/SixWinesData/SixWines2309(25degEnvTemp)_cleaned.csv",
+    "ArduinoWineSniffer/ML/WineCSVs/Train/SixWinesData/SixWines2309(25degEnvTemp)_cleaned.csv",
     header=0,
 )
 
@@ -36,7 +36,8 @@ ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False).fit(y)
 y = ohe.transform(y)
 y = torch.tensor(y, dtype=torch.float32)
 num_outputs = y.shape[1]  # Number of columns after one-hot encoding
-X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, shuffle=True)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, train_size=0.8, shuffle=True)
 
 
 # Load the model
@@ -62,11 +63,12 @@ train_data = pd.read_csv(
     "ML/WineCSVs/Train/SixWinesData/SixWines2309(25degEnvTemp)_cleaned.csv"
 )
 test_data = pd.read_csv(
-    "ML/WineCSVs/Test/ControlTests/namaqua2309control.csv"
+    "ArduinoWineSniffer/ML/WineCSVs/Test/Test2309/SophieTest2309(25degEnvTemp).csv"
 )  # Adjust path as necessary
 
 # Extract feature columns
-feature_columns = ["MQ135", "MQ2", "MQ3", "MQ4", "MQ5", "MQ6", "MQ7", "MQ8", "MQ9"]
+feature_columns = ["MQ135", "MQ2", "MQ3",
+                   "MQ4", "MQ5", "MQ6", "MQ7", "MQ8", "MQ9"]
 X_test = test_data[feature_columns]
 
 # Load the trained model and the label encoder
