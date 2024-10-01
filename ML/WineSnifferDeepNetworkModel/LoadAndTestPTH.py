@@ -1,60 +1,23 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split
 import torch
 import torch.nn as nn
 import joblib
-from sklearn.preprocessing import OneHotEncoder
-import numpy as np
-from collections import Counter
 
-# Train data
-<<<<<<< HEAD
-train_data = pd.read_csv(
-    "ML/WineCSVs/Train/SixWinesData/SixWines2509(20degEnvTemp).csv_cleaned.csv",
-=======
-data = pd.read_csv(
-    "ArduinoWineSniffer/ML/WineCSVs/Train/SixWinesData/SixWines2309(25degEnvTemp)_cleaned.csv",
->>>>>>> e2cb158e4f8491296dcfbd4ba5f7068e94bef691
-    header=0,
-)
+# Load the test data
+test_data = pd.read_csv("ML/WineCSVs/Test/ControlTests/2309/namaqua2309control.csv")
 
-feature_columns = [
-    "MQ135",
-    "MQ2",
-    "MQ3",
-    "MQ4",
-    "MQ5",
-    "MQ6",
-    "MQ7",
-    "MQ8",
-    "MQ9",
-    # "BMPTemperature",
-    # "Pressure(Pa)",
-    # "DHTTemperature",
-    # "Humidity",
-]
-target_column = "Target"
-# For adjusted CSV (environmental control)
-X = train_data[feature_columns]
-y = train_data[[target_column]]
-ohe = OneHotEncoder(handle_unknown="ignore", sparse_output=False).fit(y)
-y = ohe.transform(y)
-y = torch.tensor(y, dtype=torch.float32)
-num_outputs = y.shape[1]  # Number of columns after one-hot encoding
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, train_size=0.8, shuffle=True)
+# Extract feature columns
+feature_columns = ["MQ135", "MQ2", "MQ3", "MQ4", "MQ5", "MQ6", "MQ7", "MQ8", "MQ9"]
+X_test = test_data[feature_columns]
 
 
+# Load the trained model
 class Multiclass(nn.Module):
     def __init__(self):
         super().__init__()
-        self.hidden = nn.Linear(
-            X_train.shape[1], 32
-        )  # Input layer size based on X columns
+        self.hidden = nn.Linear(X_test.shape[1], 32)
         self.act = nn.ReLU()
-        self.output = nn.Linear(
-            32, num_outputs
-        )  # Output layer size based on target classes
+        self.output = nn.Linear(32, 6)  # 6 wine labels
 
     def forward(self, x):
         x = self.act(self.hidden(x))
@@ -62,29 +25,14 @@ class Multiclass(nn.Module):
         return x
 
 
-# Load data
-test_data = pd.read_csv(
-<<<<<<< HEAD
-    "ML/WineCSVs/Test/Test2509/NamaquaTest2509(20degEnvTemp).csv"
-=======
-    "ArduinoWineSniffer/ML/WineCSVs/Test/Test2309/SophieTest2309(25degEnvTemp).csv"
->>>>>>> e2cb158e4f8491296dcfbd4ba5f7068e94bef691
-)  # Adjust path as necessary
-
-# Extract feature columns
-feature_columns = ["MQ135", "MQ2", "MQ3",
-                   "MQ4", "MQ5", "MQ6", "MQ7", "MQ8", "MQ9"]
-X_test = test_data[feature_columns]
-
-# Load the trained model and the label encoder
 model = Multiclass()
 model.load_state_dict(torch.load("wine_model.pth"))
 model.eval()
 
+# Load the label encoder
 label_encoder = joblib.load("label_encoder.pkl")
-class_names = label_encoder.classes_
 
-# Preprocess test data (if needed)
+# Preprocess test data
 X_test_tensor = torch.tensor(X_test.values, dtype=torch.float32)
 
 # Predict
@@ -99,6 +47,8 @@ predicted_class_names = label_encoder.inverse_transform(predicted_classes)
 for idx, class_name in enumerate(predicted_class_names):
     print(f"Sample {idx + 1}: Classified as {class_name}")
 
-# Calculate modal classification
+# Optional: Calculate modal classification
+from collections import Counter
+
 modal_class = Counter(predicted_class_names).most_common(1)[0][0]
 print(f"\nModal classification wine name: {modal_class}")

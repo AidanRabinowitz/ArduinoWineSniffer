@@ -7,7 +7,6 @@ from collections import Counter
 
 app = Flask(__name__)
 
-
 # Define the PyTorch model
 class Multiclass(nn.Module):
     def __init__(self):
@@ -21,7 +20,6 @@ class Multiclass(nn.Module):
         x = self.output(x)
         return x
 
-
 # Load model and label encoder
 model = Multiclass()
 model.load_state_dict(torch.load("../wine_model.pth"))
@@ -29,7 +27,6 @@ model.eval()
 
 label_encoder = joblib.load("../label_encoder.pkl")
 class_names = label_encoder.classes_
-
 
 # Define a route to get the modal classification
 @app.route("/classify", methods=["POST"])
@@ -52,9 +49,11 @@ def classify_wine():
     # Calculate modal class
     modal_class = Counter(predicted_class_names).most_common(1)[0][0]
 
-    # Return modal classification
-    return jsonify({"modal_class": modal_class})
-
+    # Return all predicted class names and the modal class
+    return jsonify({
+        "classified_wines": predicted_class_names.tolist(),
+        "modal_class": modal_class
+    })
 
 if __name__ == "__main__":
     app.run(debug=True)
