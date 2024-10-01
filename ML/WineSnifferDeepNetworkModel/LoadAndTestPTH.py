@@ -1,5 +1,5 @@
+from collections import Counter
 import pandas as pd
-from sklearn.model_selection import train_test_split
 import torch
 import torch.nn as nn
 import joblib
@@ -43,13 +43,9 @@ X_train, X_test, y_train, y_test = train_test_split(
 class Multiclass(nn.Module):
     def __init__(self):
         super().__init__()
-        self.hidden = nn.Linear(
-            X_train.shape[1], 32
-        )  # Input layer size based on X columns
+        self.hidden = nn.Linear(X_test.shape[1], 32)
         self.act = nn.ReLU()
-        self.output = nn.Linear(
-            32, num_outputs
-        )  # Output layer size based on target classes
+        self.output = nn.Linear(32, 6)  # 6 wine labels
 
     def forward(self, x):
         x = self.act(self.hidden(x))
@@ -57,25 +53,14 @@ class Multiclass(nn.Module):
         return x
 
 
-# Load data
-test_data = pd.read_csv(
-    "ArduinoWineSniffer/ML/WineCSVs/Test/Test2309/SophieTest2309(25degEnvTemp).csv"
-)  # Adjust path as necessary
-
-# Extract feature columns
-feature_columns = ["MQ135", "MQ2", "MQ3",
-                   "MQ4", "MQ5", "MQ6", "MQ7", "MQ8", "MQ9"]
-X_test = test_data[feature_columns]
-
-# Load the trained model and the label encoder
 model = Multiclass()
-model.load_state_dict(torch.load("wine_model.pth"))
+model.load_state_dict(torch.load("../wine_model.pth"))
 model.eval()
 
-label_encoder = joblib.load("label_encoder.pkl")
-class_names = label_encoder.classes_
+# Load the label encoder
+label_encoder = joblib.load("../label_encoder.pkl")
 
-# Preprocess test data (if needed)
+# Preprocess test data
 X_test_tensor = torch.tensor(X_test.values, dtype=torch.float32)
 
 # Predict
@@ -89,6 +74,8 @@ predicted_class_names = label_encoder.inverse_transform(predicted_classes)
 # Print results
 for idx, class_name in enumerate(predicted_class_names):
     print(f"Sample {idx + 1}: Classified as {class_name}")
+
+# Optional: Calculate modal classification
 
 # Calculate modal classification
 modal_class = Counter(predicted_class_names).most_common(1)[0][0]
