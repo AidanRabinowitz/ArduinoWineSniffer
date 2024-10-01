@@ -6,13 +6,14 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import tqdm
+from sklearn.decomposition import PCA
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from torch.utils.data import DataLoader, TensorDataset
 
 # Train data
 data = pd.read_csv(
-    "ML/WineCSVs/Train/SixWinesData/combined_cleaned_r1_3009_data.csv",
+    r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineCSVs/Train/SixWinesData/SixWines2509(20degEnvTemp).csv_cleaned.csv",
     header=0,
 )
 
@@ -37,19 +38,26 @@ y = data[target_column]
 label_encoder = LabelEncoder()
 y = label_encoder.fit_transform(y)
 
+# Apply PCA to reduce dimensionality
+pca = PCA(n_components=2)  # Modify n_components based on desired variance retention
+X_pca = pca.fit_transform(X)
+
 # Convert to PyTorch tensors
-X = torch.tensor(X.values, dtype=torch.float32)
+X_pca = torch.tensor(X_pca, dtype=torch.float32)
 y = torch.tensor(
     y, dtype=torch.long
 )  # Use long for class indices, required by CrossEntropyLoss
 
 # Split data
-X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.8, shuffle=True)
+X_train, X_test, y_train, y_test = train_test_split(
+    X_pca, y, train_size=0.8, shuffle=True
+)
 
-# Save label encoder for later use
+# Save label encoder and PCA for later use
 import joblib
 
 joblib.dump(label_encoder, "label_encoder.pkl")
+joblib.dump(pca, "pca_model.pkl")  # Save PCA model for future use
 
 # Define the number of output classes
 num_outputs = len(np.unique(y))  # Number of classes
@@ -77,7 +85,7 @@ loss_fn = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # Prepare DataLoader for batching
-batch_size = 32  # Adjust batch size as needed
+batch_size = 32
 train_dataset = TensorDataset(X_train, y_train)
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
@@ -141,7 +149,7 @@ for epoch in range(n_epochs):
 # Restore the best model
 model.load_state_dict(best_weights)
 
-# Save the trained model for later use
-torch.save(model.state_dict(), "wine_model.pth")
+# Save the trained model with PCA applied
+torch.save(model.state_dict(), "pca_wine_model.pth")
 
 print(f"Highest achieved accuracy: {best_acc * 100:.2f}%")

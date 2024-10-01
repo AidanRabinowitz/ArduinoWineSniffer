@@ -5,6 +5,7 @@ import torch.nn as nn
 import joblib
 from collections import Counter
 from flask_cors import CORS
+import subprocess
 
 app = Flask(__name__)
 
@@ -38,6 +39,18 @@ test_data = pd.read_csv(
 )
 feature_columns = ["MQ135", "MQ2", "MQ3", "MQ4", "MQ5", "MQ6", "MQ7", "MQ8", "MQ9"]
 X_test = test_data[feature_columns]
+
+
+@app.route("/run-test", methods=["POST"])  # New route to trigger the script
+def run_test():
+    try:
+        subprocess.run(
+            ["python", "../ML/WineSnifferDeepNetworkModel/loadandtestpth.py"],
+            check=True,
+        )  # Run the script
+        return jsonify({"message": "Script executed successfully."}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/predict", methods=["GET"])
