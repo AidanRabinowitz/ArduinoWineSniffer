@@ -5,7 +5,7 @@ from deep_learning import DeepLearning
 
 def process_folder(folder_path, output_file):
     # Initialize the DataCleaner with folder path and output file
-    cleaner = DataCleaner(folder_path, output_file)
+    cleaner = DataCleaner(folder_path)
     cleaner.clean_data()  # Call the cleaning function
 
 

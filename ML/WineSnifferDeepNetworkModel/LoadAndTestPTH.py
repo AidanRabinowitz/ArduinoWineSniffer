@@ -8,13 +8,8 @@ import numpy as np
 from collections import Counter
 
 # Train data
-<<<<<<< HEAD
-train_data = pd.read_csv(
-    "ML/WineCSVs/Train/SixWinesData/SixWines2509(20degEnvTemp).csv_cleaned.csv",
-=======
 data = pd.read_csv(
     "ArduinoWineSniffer/ML/WineCSVs/Train/SixWinesData/SixWines2309(25degEnvTemp)_cleaned.csv",
->>>>>>> e2cb158e4f8491296dcfbd4ba5f7068e94bef691
     header=0,
 )
 
@@ -64,11 +59,7 @@ class Multiclass(nn.Module):
 
 # Load data
 test_data = pd.read_csv(
-<<<<<<< HEAD
-    "ML/WineCSVs/Test/Test2509/NamaquaTest2509(20degEnvTemp).csv"
-=======
     "ArduinoWineSniffer/ML/WineCSVs/Test/Test2309/SophieTest2309(25degEnvTemp).csv"
->>>>>>> e2cb158e4f8491296dcfbd4ba5f7068e94bef691
 )  # Adjust path as necessary
 
 # Extract feature columns
