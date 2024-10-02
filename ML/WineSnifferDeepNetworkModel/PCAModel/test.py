@@ -5,7 +5,7 @@ import joblib
 
 # Load the test data
 test_data = pd.read_csv(
-    r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineCSVs/Test/Test2509/NamaquaTest2509(20degEnvTemp).csv"
+    r"ML/WineCSVs/Test/Test2309/TallHorseTest2309(25degEnvTemp).csv"
 )
 
 # Extract feature columns
