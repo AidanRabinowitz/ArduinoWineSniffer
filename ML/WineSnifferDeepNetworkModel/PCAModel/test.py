@@ -2,10 +2,11 @@ import pandas as pd
 import torch
 import torch.nn as nn
 import joblib
+from collections import Counter
 
 # Load the test data
 test_data = pd.read_csv(
-    r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineCSVs/Test/Test2509/NamaquaTest2509(20degEnvTemp).csv"
+    r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineCSVs/Test/Test2509/SophieTest2509(20degEnvTemp).csv"
 )
 
 num_wines_in_dataset = 11
@@ -64,7 +65,17 @@ for idx, class_name in enumerate(predicted_class_names):
     print(f"Sample {idx + 1}: Classified as {class_name}")
 
 # Optional: Calculate modal classification
-from collections import Counter
-
 modal_class = Counter(predicted_class_names).most_common(1)[0][0]
 print(f"\nModal classification wine name: {modal_class}")
+
+# Input for WineTested
+wine_tested = input("\nEnter the name of the wine tested: ")
+
+# Calculate Label Accuracy using substring match
+total_samples = len(predicted_class_names)
+count_correct = sum(
+    1 for name in predicted_class_names if wine_tested.lower() in name.lower()
+)
+label_accuracy = (count_correct / total_samples) * 100 if total_samples > 0 else 0
+
+print(f"Label Accuracy for '{wine_tested}': {label_accuracy:.2f}%")
