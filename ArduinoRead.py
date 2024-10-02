@@ -6,9 +6,8 @@ import csv
 MQSensorData = []
 
 
-def load_data_from_file(filename="BlackTieR2_3009(20degEnvTemp).csv"):
+def load_data_from_file(filename):
     try:
-
         with open(filename, "r") as f:
             reader = csv.DictReader(f)
             return list(reader)
@@ -16,7 +15,7 @@ def load_data_from_file(filename="BlackTieR2_3009(20degEnvTemp).csv"):
         return []
 
 
-def save_data_to_file(data, filename="BlackTieR2_3009(20degEnvTemp).csv"):
+def save_data_to_file(data, filename):
     with open(filename, "w", newline="") as f:
         fieldnames = [
             "yyyy-mm-dd timestamp",
@@ -42,7 +41,6 @@ def save_data_to_file(data, filename="BlackTieR2_3009(20degEnvTemp).csv"):
 
 def parse_sensor_data(line):
     try:
-        data_dict = {}
         sensors = line.split(",")
         data_dict = {
             "MQ6": sensors[0].split(":")[1],  # COM3 A0
@@ -65,7 +63,7 @@ def parse_sensor_data(line):
         return None
 
 
-def read_serial_data(port="COM6", baudrate=115200, save_interval=1):
+def read_serial_data(port="COM6", baudrate=115200, save_interval=1, filename="data.csv"):
     ser = serial.Serial(port, baudrate)
     entry_count = 0  # Counter for entries to manage save interval
 
@@ -76,12 +74,14 @@ def read_serial_data(port="COM6", baudrate=115200, save_interval=1):
                 data = parse_sensor_data(line)
 
                 if data:
-                    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")  # Get current time
+                    timestamp = time.strftime(
+                        "%Y-%m-%d %H:%M:%S")  # Get current time
                     sensor_data = {"yyyy-mm-dd timestamp": timestamp}
                     sensor_data.update(data)
 
-                    # Add the hardcoded "Target" value
-                    sensor_data["Target"] = "BlackTieR2_3009(20degEnvTemp)"
+                    # Use the filename (without extension) as the "Target"
+                    target_value = filename.split(".")[0]
+                    sensor_data["Target"] = target_value
 
                     MQSensorData.append(sensor_data)
                     print(MQSensorData[-1])  # Print the latest entry to verify
@@ -91,7 +91,7 @@ def read_serial_data(port="COM6", baudrate=115200, save_interval=1):
 
                     # Save data to file at the specified interval
                     if entry_count >= save_interval:
-                        save_data_to_file(MQSensorData)
+                        save_data_to_file(MQSensorData, filename)
                         entry_count = 0  # Reset the counter
 
             # # Wait 0.5 seconds before reading the next set of data
@@ -103,10 +103,21 @@ def read_serial_data(port="COM6", baudrate=115200, save_interval=1):
         print(f"Error: {e}")
     finally:
         ser.close()
-        save_data_to_file(MQSensorData)  # Ensure data is saved when exiting
+        # Ensure data is saved when exiting
+        save_data_to_file(MQSensorData, filename)
 
 
 if __name__ == "__main__":
-    # Load existing data
-    MQSensorData = load_data_from_file()
-    read_serial_data(port="COM6", baudrate=115200)
+    # Prompt for COM port:
+    # COM6 - AIDAN
+    # COM9 -JESS
+    COM_port = "COM"+input("Enter the COM port number:")
+
+    # Prompt the user for the filename
+    filename = input("Enter the filename (e.g., BlackTieR2_3009.csv): ")
+
+    # Load existing data if any
+    MQSensorData = load_data_from_file(filename)
+
+    # Start reading serial data and saving to the given filename
+    read_serial_data(port=COM_port, baudrate=115200, filename=filename)
