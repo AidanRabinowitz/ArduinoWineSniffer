@@ -1,0 +1,73 @@
+#include <Wire.h>
+#include <SPI.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BMP280.h>
+#include <dht.h>
+
+// Define the pins for BMP and DHT sensors
+#define BMP_SCK 13    // SCL
+#define BMP_MISO 12   // SDO
+#define BMP_MOSI 11   // SDA
+#define BMP_CS 10     // CSB
+#define DHT11_PIN 4
+
+// Instantiate sensor objects
+Adafruit_BMP280 bme(BMP_CS, BMP_MOSI, BMP_MISO, BMP_SCK);
+dht DHT;
+
+void setup() {
+Serial.begin(115200);
+  // Initialize BMP280 sensor
+  if (!bme.begin()) {
+    Serial.println("Could not find a valid BMP280 sensor, check wiring!");
+    while (1);
+  }
+
+  // Set pin modes for analog sensors on COM3 (A0–A4) and COM5 (A5–A8)
+  for (int i = A0; i <= A8; i++) {
+    pinMode(i, INPUT);
+  }
+}
+
+void loop() {
+  // Read analog sensors (COM3 A0–A4)
+  int sensorValue0 = analogRead(A0); // MQ6
+  int sensorValue1 = analogRead(A1); // MQ5
+  int sensorValue2 = analogRead(A2); // MQ4
+  int sensorValue3 = analogRead(A3); // MQ7
+  int sensorValue4 = analogRead(A4); // MQ3
+
+  // Read analog sensors (COM5 A5–A8)
+  int sensorValue5 = analogRead(A5); // MQ8
+  int sensorValue6 = analogRead(A6); // MQ2
+  int sensorValue7 = analogRead(A7); // MQ135
+  int sensorValue8 = analogRead(A8); // MQ9
+
+  // Print sensor values from COM3 and COM5
+  Serial.print("Sensor_A0:"); Serial.print(sensorValue0);
+  Serial.print(",Sensor_A1:"); Serial.print(sensorValue1);
+  Serial.print(",Sensor_A2:"); Serial.print(sensorValue2);
+  Serial.print(",Sensor_A3:"); Serial.print(sensorValue3);
+  Serial.print(",Sensor_A4:"); Serial.print(sensorValue4);
+  Serial.print(",Sensor_A5:"); Serial.print(sensorValue5);
+  Serial.print(",Sensor_A6:"); Serial.print(sensorValue6);
+  Serial.print(",Sensor_A7:"); Serial.print(sensorValue7);
+  Serial.print(",Sensor_A8:"); Serial.print(sensorValue8);
+
+  // BMP280 sensor readings (Temperature and Pressure)
+  Serial.print(",BMP.Temperature(*C):");
+  Serial.print(bme.readTemperature());
+  Serial.print(",Pressure(Pa):");
+  Serial.print(bme.readPressure());
+
+  // DHT11 sensor readings (Temperature and Humidity)
+  int chk = DHT.read11(DHT11_PIN);
+  Serial.print(",DHT.Temperature:"); Serial.print(DHT.temperature);
+  Serial.print(",Humidity:"); Serial.print(DHT.humidity);
+
+  // Newline for next set of sensor readings
+  Serial.println();
+
+  // // Delay before the next reading
+  // delay(200);
+}
