@@ -1,29 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import loadingImage from './images/blacktieimage.png'; // Update this to your correct image path
+import LoadingScreen from './screens/LoadingScreen';
 
 const Home = () => {
     const navigate = useNavigate();
     const [wineName, setWineName] = useState('');
-    const [loading, setLoading] = useState(false); // New loading state
+    const [loading, setLoading] = useState(false);
 
     const handleRunTest = async () => {
-        setLoading(true); // Set loading to true when button is clicked
+        setLoading(true);
         try {
             await axios.post('http://127.0.0.1:5000/run-test', { wine_name: wineName });
             navigate('/predict');  // Navigate to the predict page
         } catch (error) {
             console.error('Error running the test:', error);
         } finally {
-            setLoading(false); // Reset loading state
+            setLoading(false);
         }
     };
 
-    if (loading) {
-        return <LoadingScreen />; // Show loading screen if loading
+       // If loading, return the LoadingScreen
+       if (loading) {
+        return <LoadingScreen />;
     }
 
+    // Otherwise, return the main UI
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
             <div className="bg-white rounded-lg shadow-lg p-8 max-w-lg w-full text-center">
@@ -46,24 +48,11 @@ const Home = () => {
     );
 };
 
-const LoadingScreen = () => {
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-white">
-            <img
-                src={loadingImage}
-                alt="Loading"
-                className="animate-spin w-48 h-48" // Use Tailwind classes for size and animation
-            />
-            <title>Loading...</title>
-        </div>
-    );
-};
-
-
 const Predict = () => {
     const [predictions, setPredictions] = useState([]);
     const [modalClass, setModalClass] = useState('');
-    const [labelAccuracy, setLabelAccuracy] = useState(null);
+    const [labelAccuracy, setLabelAccuracy] = useState(0);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -74,11 +63,17 @@ const Predict = () => {
                 setLabelAccuracy(response.data.label_accuracy);
             } catch (error) {
                 console.error('Error fetching data:', error);
+            } finally {
+                setLoading(false);
             }
         };
 
         fetchData();
     }, []);
+
+    if (loading) {
+        return <LoadingScreen />; // Show loading screen while fetching predictions
+    }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
@@ -94,11 +89,9 @@ const Predict = () => {
                         <li key={index} className="text-gray-800 mb-1">{className}</li>
                     ))}
                 </ul>
-                {labelAccuracy !== null && (
-                    <h4 className="text-lg font-medium text-gray-600 mb-2">
-                        Label Accuracy: <span className="text-purple-600">{labelAccuracy ? labelAccuracy.toFixed(2) : 'N/A'}%</span>
-                    </h4>
-                )}
+                <h4 className="text-lg font-medium text-gray-600 mt-4">
+                    Label Accuracy: <span className="text-purple-600">{labelAccuracy.toFixed(2)}%</span>
+                </h4>
             </div>
         </div>
     );
