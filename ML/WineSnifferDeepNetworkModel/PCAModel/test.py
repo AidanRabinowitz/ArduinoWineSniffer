@@ -5,9 +5,10 @@ import joblib
 
 # Load the test data
 test_data = pd.read_csv(
-    r"ML/WineCSVs/Test/Test2309/TallHorseTest2309(25degEnvTemp).csv"
+    r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineCSVs/Test/Test2509/NamaquaTest2509(20degEnvTemp).csv"
 )
 
+num_wines_in_dataset = 11
 # Extract feature columns
 feature_columns = ["MQ135", "MQ2", "MQ3", "MQ4", "MQ5", "MQ6", "MQ7", "MQ8", "MQ9"]
 X_test = test_data[feature_columns]
@@ -30,7 +31,7 @@ class Multiclass(nn.Module):
             X_test_pca.shape[1], 32
         )  # Adjust input size to match PCA output
         self.act = nn.ReLU()
-        self.output = nn.Linear(32, 6)  # Assuming 6 wine classes
+        self.output = nn.Linear(32, num_wines_in_dataset)
 
     def forward(self, x):
         x = self.act(self.hidden(x))

@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader, TensorDataset
 
 # Train data
 data = pd.read_csv(
-    r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineCSVs/Train/SixWinesData/SixWines23&25Combined.csv",
+    r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/cleaned_data.csv",
     header=0,
 )
 
