@@ -10,7 +10,7 @@ wine_tested = sys.argv[1] if len(sys.argv) > 1 else ""
 
 # Load the test data
 test_data = pd.read_csv(
-    r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineCSVs/Test/Test2309/silvermyntestforpcatest.csv"
+    r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineCSVs/Test/ControlTests/3009/Moscato.csv"
 )
 
 num_wines_in_dataset = 11
@@ -65,7 +65,7 @@ label_accuracy = (count_correct / total_samples) * 100 if total_samples > 0 else
 
 # Print results
 print(f"Label Accuracy for '{wine_tested}': {label_accuracy:.2f}%")
-
+print(predicted_class_names)
 # Save the accuracy to a file (or handle it as needed)
 with open("label_accuracy.txt", "w") as f:
     f.write(str(label_accuracy))

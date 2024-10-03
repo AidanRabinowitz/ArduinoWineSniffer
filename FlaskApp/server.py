@@ -19,7 +19,7 @@ label_encoder = joblib.load(
 
 # Load the test data
 test_data = pd.read_csv(
-    r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineCSVs/Test/Test2309/silvermyntestforpcatest.csv"
+    r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineCSVs/Test/ControlTests/3009/Moscato.csv"
 )
 
 num_wines_in_dataset = 11
