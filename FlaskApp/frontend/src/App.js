@@ -20,8 +20,8 @@ const Home = () => {
         }
     };
 
-       // If loading, return the LoadingScreen
-       if (loading) {
+    // If loading, return the LoadingScreen
+    if (loading) {
         return <LoadingScreen />;
     }
 

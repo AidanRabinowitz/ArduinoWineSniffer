@@ -79,77 +79,79 @@ class Multiclass(nn.Module):
         return x
 
 
-# Initialize the model, loss function, and optimizer
-model = Multiclass().to(device)  # Move model to GPU
-loss_fn = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+if __name__ == "__main__":
 
-# Prepare DataLoader for batching
-batch_size = 32
-train_dataset = TensorDataset(X_train, y_train)
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    # Initialize the model, loss function, and optimizer
+    model = Multiclass().to(device)  # Move model to GPU
+    loss_fn = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-# Prepare model training parameters
-n_epochs = 100
+    # Prepare DataLoader for batching
+    batch_size = 32
+    train_dataset = TensorDataset(X_train, y_train)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-best_acc = -np.inf
-best_weights = None
-train_loss_hist = []
-train_acc_hist = []
-test_loss_hist = []
-test_acc_hist = []
+    # Prepare model training parameters
+    n_epochs = 10
 
-# Training loop
-for epoch in range(n_epochs):
-    epoch_loss = []
-    epoch_acc = []
+    best_acc = -np.inf
+    best_weights = None
+    train_loss_hist = []
+    train_acc_hist = []
+    test_loss_hist = []
+    test_acc_hist = []
 
-    model.train()
-    with tqdm.trange(len(train_loader), unit="batch", mininterval=0) as bar:
-        bar.set_description(f"Epoch {epoch}")
-        for X_batch, y_batch in train_loader:
-            # Move batch to GPU
-            X_batch, y_batch = X_batch.to(device), y_batch.to(device)
+    # Training loop
+    for epoch in range(n_epochs):
+        epoch_loss = []
+        epoch_acc = []
 
-            # Forward pass
-            y_pred = model(X_batch)
-            loss = loss_fn(y_pred, y_batch)
+        model.train()
+        with tqdm.trange(len(train_loader), unit="batch", mininterval=0) as bar:
+            bar.set_description(f"Epoch {epoch}")
+            for X_batch, y_batch in train_loader:
+                # Move batch to GPU
+                X_batch, y_batch = X_batch.to(device), y_batch.to(device)
 
-            # Backward pass
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+                # Forward pass
+                y_pred = model(X_batch)
+                loss = loss_fn(y_pred, y_batch)
 
-            # Compute and store metrics
-            acc = (torch.argmax(y_pred, 1) == y_batch).float().mean()
-            epoch_loss.append(float(loss))
-            epoch_acc.append(float(acc))
-            bar.set_postfix(loss=float(loss), acc=float(acc))
+                # Backward pass
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
 
-    # Evaluation on test set
-    model.eval()
-    with torch.no_grad():
-        y_pred = model(X_test.to(device))  # Move test data to GPU
-        ce = loss_fn(y_pred, y_test.to(device))  # Move test labels to GPU
-        acc = (torch.argmax(y_pred, 1) == y_test.to(device)).float().mean()
+                # Compute and store metrics
+                acc = (torch.argmax(y_pred, 1) == y_batch).float().mean()
+                epoch_loss.append(float(loss))
+                epoch_acc.append(float(acc))
+                bar.set_postfix(loss=float(loss), acc=float(acc))
 
-    train_loss_hist.append(np.mean(epoch_loss))
-    train_acc_hist.append(np.mean(epoch_acc))
-    test_loss_hist.append(float(ce))
-    test_acc_hist.append(float(acc))
+        # Evaluation on test set
+        model.eval()
+        with torch.no_grad():
+            y_pred = model(X_test.to(device))  # Move test data to GPU
+            ce = loss_fn(y_pred, y_test.to(device))  # Move test labels to GPU
+            acc = (torch.argmax(y_pred, 1) == y_test.to(device)).float().mean()
 
-    if acc > best_acc:
-        best_acc = acc
-        best_weights = copy.deepcopy(model.state_dict())
+        train_loss_hist.append(np.mean(epoch_loss))
+        train_acc_hist.append(np.mean(epoch_acc))
+        test_loss_hist.append(float(ce))
+        test_acc_hist.append(float(acc))
 
-    print(
-        f"Epoch {epoch} validation: Cross-entropy={float(ce):.2f}, Accuracy={float(acc)*100:.1f}%"
-    )
+        if acc > best_acc:
+            best_acc = acc
+            best_weights = copy.deepcopy(model.state_dict())
 
-# Restore the best model
-model.load_state_dict(best_weights)
+        print(
+            f"Epoch {epoch} validation: Cross-entropy={float(ce):.2f}, Accuracy={float(acc)*100:.1f}%"
+        )
 
-# Save the trained model with PCA applied
-torch.save(model.state_dict(), "pca_wine_model.pth")
+    # Restore the best model
+    model.load_state_dict(best_weights)
 
-print(f"Highest achieved accuracy: {best_acc * 100:.2f}%")
+    # Save the trained model with PCA applied
+    torch.save(model.state_dict(), "pca_wine_model.pth")
+
+    print(f"Highest achieved accuracy: {best_acc * 100:.2f}%")

@@ -4,9 +4,10 @@ import torch.nn as nn
 import joblib
 from collections import Counter
 import sys
+from train import Multiclass
 
 # Load the wine name from command-line arguments
-wine_tested = sys.argv[1] if len(sys.argv) > 1 else ""
+wine_tested = "Moscato"
 
 # Load the test data
 test_data = pd.read_csv(
@@ -20,20 +21,6 @@ X_test = test_data[feature_columns]
 # Load the PCA model
 pca = joblib.load(r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/pca_model.pkl")
 X_test_pca = pca.transform(X_test)
-
-
-# Load the trained neural network model
-class Multiclass(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.hidden = nn.Linear(X_test_pca.shape[1], 32)
-        self.act = nn.ReLU()
-        self.output = nn.Linear(32, num_wines_in_dataset)
-
-    def forward(self, x):
-        x = self.act(self.hidden(x))
-        x = self.output(x)
-        return x
 
 
 model = Multiclass()
@@ -63,9 +50,10 @@ count_correct = sum(
 )
 label_accuracy = (count_correct / total_samples) * 100 if total_samples > 0 else 0
 
+print(predicted_class_names)
 # Print results
 print(f"Label Accuracy for '{wine_tested}': {label_accuracy:.2f}%")
-print(predicted_class_names)
+
 # Save the accuracy to a file (or handle it as needed)
 with open("label_accuracy.txt", "w") as f:
     f.write(str(label_accuracy))
