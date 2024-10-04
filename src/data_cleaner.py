@@ -63,6 +63,7 @@ class DataCleaner:
 
     def _clean_individual_file(self, df):
         print(f"Original number of rows: {len(df)}")
+        l_before = len(df)
 
         # Step 1: Remove null values
         df = df.dropna()
@@ -72,21 +73,22 @@ class DataCleaner:
         sensor_columns = [col for col in df.columns if col not in [
             'yyyy-mm-dd timestamp', 'Target']]
         for col in sensor_columns:
-            df[col] = pd.to_numeric(df[col], errors='coerce')
+            df.loc[:, col] = pd.to_numeric(df[col], errors='coerce')
 
         # Step 3: Remove rows with any NaN values
         df = df.dropna()
         print(f"Rows after removing NaNs from sensor columns: {len(df)}")
 
+        # Step 3.5: Handle infinite values
+        df.replace([np.inf, -np.inf], np.nan, inplace=True)
+
         # Step 4: Remove outliers from the sensor columns using the appropriate method
         if self.cleaning_method == 'z_score':
             df = self._remove_outliers_zscore(df, sensor_columns)
-            print(
-                f"Rows after removing outliers with Z-Score method: {len(df)}")
         elif self.cleaning_method == 'iqr':
             df = self._remove_outliers_iqr(df, sensor_columns)
-            print(f"Rows after removing outliers with IQR method: {len(df)}")
 
+        print(f"Total rows cleaned: {l_before - len(df)}")
         return df
 
     def _remove_outliers_zscore(self, df, columns):
@@ -97,7 +99,7 @@ class DataCleaner:
         cleaned_df = df[mask]
 
         print(
-            f"Original rows: {len(df)}, Cleaned rows after Z-Score: {len(cleaned_df)}")
+            f"Rows before: {len(df)}, Rows cleaned after Z-Score: {len(df)-len(cleaned_df)}")
         return cleaned_df
 
     def _remove_outliers_iqr(self, df, columns):
@@ -106,9 +108,11 @@ class DataCleaner:
             Q1 = df[col].quantile(0.25)
             Q3 = df[col].quantile(0.75)
             IQR = Q3 - Q1
-            df = df[~((df[col] < (Q1 - 1.5 * IQR)) |
-                      (df[col] > (Q3 + 1.5 * IQR)))]
-        return df
+            cleaned_df = df[~((df[col] < (Q1 - 1.5 * IQR)) |
+                              (df[col] > (Q3 + 1.5 * IQR)))]
+        print(
+            f"Rows before: {len(df)}, Rows cleaned after IQR: {len(df)-len(cleaned_df)}")
+        return cleaned_df
 
     def plot_histograms(self, df):
         """
@@ -124,8 +128,15 @@ class DataCleaner:
                 plt.hist(subset[col], bins=30, alpha=0.5,
                          label=f'Target {target}')
 
-            plt.title(f'Distribution of {col} values by Target')
-            plt.xlabel(f'{col} Value')
-            plt.ylabel('Frequency')
-            plt.legend()
+            # Set title font size
+            plt.title(f'Distribution of {col} values by Target', fontsize=30)
+            # Set x-axis label font size
+            plt.xlabel(f'{col} Value', fontsize=24)
+            plt.ylabel('Frequency', fontsize=24)  # Set y-axis label font size
+
+            # Set the font size for tick labels
+            # Adjust label size for both axes
+            plt.tick_params(axis='both', labelsize=22)
+
+            plt.legend(fontsize=12)  # Set legend font size
             plt.show()

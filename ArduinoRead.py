@@ -16,7 +16,7 @@ def load_data_from_file(filename):
 
 
 def save_data_to_file(data, filename):
-    with open(filename, "w", newline="") as f:
+    with open(filename, "a", newline="") as f:  # Open in append mode
         fieldnames = [
             "yyyy-mm-dd timestamp",
             "MQ6",
@@ -35,7 +35,11 @@ def save_data_to_file(data, filename):
             "Target",
         ]
         writer = csv.DictWriter(f, fieldnames=fieldnames)
-        writer.writeheader()
+
+        # Write header only if the file is new (not existing)
+        if f.tell() == 0:  # Check if the file is empty
+            writer.writeheader()
+
         writer.writerows(data)
 
 
@@ -63,12 +67,13 @@ def parse_sensor_data(line):
         return None
 
 
-def read_serial_data(port="COM6", baudrate=115200, save_interval=1, filename="data.csv"):
+def read_serial_data(port="COM6", baudrate=115200, save_interval=5000, filename="final_data.csv", max_entries=15000):
+    global MQSensorData  # Use global variable
     ser = serial.Serial(port, baudrate)
     entry_count = 0  # Counter for entries to manage save interval
 
     try:
-        while True:
+        while entry_count < max_entries:  # Loop until max_entries is reached
             if ser.in_waiting > 0:
                 line = ser.readline().decode("utf-8").rstrip()
                 data = parse_sensor_data(line)
@@ -86,16 +91,14 @@ def read_serial_data(port="COM6", baudrate=115200, save_interval=1, filename="da
                     MQSensorData.append(sensor_data)
                     print(MQSensorData[-1])  # Print the latest entry to verify
 
-                    # Increment the entry counter
-                    entry_count += 1
+                    entry_count += 1  # Increment the entry counter
 
-                    # Save data to file at the specified interval
-                    if entry_count >= save_interval:
+                    # Save data to file when reaching the specified limit
+                    if entry_count % save_interval == 0:
                         save_data_to_file(MQSensorData, filename)
-                        entry_count = 0  # Reset the counter
+                        MQSensorData.clear()  # Clear data for the next batch
 
-            # # Wait 0.5 seconds before reading the next set of data
-            # time.sleep(0.5)
+        print("Max entries reached. Stopping data collection.")
 
     except KeyboardInterrupt:
         print("Exiting...")
@@ -103,18 +106,15 @@ def read_serial_data(port="COM6", baudrate=115200, save_interval=1, filename="da
         print(f"Error: {e}")
     finally:
         ser.close()
-        # Ensure data is saved when exiting
-        save_data_to_file(MQSensorData, filename)
+        # Ensure any remaining data is saved when exiting
+        if MQSensorData:  # Only save if there is data
+            save_data_to_file(MQSensorData, filename)
 
 
 if __name__ == "__main__":
-    # Prompt for COM port:
-    # COM6 - AIDAN
-    # COM9 -JESS
-    COM_port = "COM"+input("Enter the COM port number:")
-
-    # Prompt the user for the filename
-    filename = input("Enter the filename (e.g., BlackTieR2_3009.csv): ")
+    COM_port = "COM" + input("Enter the COM port number: ")
+    filename = input(
+        "Enter the filename for the final output (e.g., final_data.csv): ")
 
     # Load existing data if any
     MQSensorData = load_data_from_file(filename)
