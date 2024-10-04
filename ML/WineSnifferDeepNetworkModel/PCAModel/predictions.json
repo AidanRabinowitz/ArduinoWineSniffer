@@ -1,0 +1,38 @@
+{
+  "predicted_labels": [
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)",
+    "SilverMyn3009(20degEnvTemp)"
+  ],
+  "wine_tested": "",
+  "predicted_class_indices": [
+    6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
+    6, 6, 6, 6
+  ]
+}

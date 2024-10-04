@@ -1,73 +1,69 @@
-from flask import Flask, jsonify
-import pandas as pd
-import torch
-import torch.nn as nn
-import joblib
-from collections import Counter
-from flask_cors import CORS
+from flask import Flask, jsonify, request
 import subprocess
+import json
+from flask_cors import CORS
+import os
 
 app = Flask(__name__)
-
 CORS(app)
 
 
-# Load the model
-class Multiclass(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.hidden = nn.Linear(9, 32)
-        self.act = nn.ReLU()
-        self.output = nn.Linear(32, 6)  # 6 wine labels
-
-    def forward(self, x):
-        x = self.act(self.hidden(x))
-        x = self.output(x)
-        return x
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({"message": "Welcome to the Wine Testing API!"}), 200
 
 
-model = Multiclass()
-model.load_state_dict(torch.load("../wine_model.pth"))
-model.eval()
-
-# Load the label encoder
-label_encoder = joblib.load("../label_encoder.pkl")
-
-# Load the test data (for demonstration, this should be dynamic)
-test_data = pd.read_csv(
-    "../ML/WineCSVs/Test/ControlTests/2509/silvermyn2509control.csv"
-)
-feature_columns = ["MQ135", "MQ2", "MQ3", "MQ4", "MQ5", "MQ6", "MQ7", "MQ8", "MQ9"]
-X_test = test_data[feature_columns]
-
-
-@app.route("/run-test", methods=["POST"])  # New route to trigger the script
+@app.route("/run-test", methods=["POST"])
 def run_test():
+    data = request.get_json()
+    wine_name = data.get("wine_name", "").strip()
+
+    if not wine_name:
+        return jsonify({"error": "Wine name is required."}), 400
+
+    # Define the path to test.py
+    test_script_path = os.path.join(
+        "C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel",
+        "test.py",
+    )
+
+    # Check if test.py exists
+    if not os.path.isfile(test_script_path):
+        return jsonify({"error": f"test.py not found at {test_script_path}"}), 500
+
     try:
-        subprocess.run(
-            ["python", "../ML/WineSnifferDeepNetworkModel/loadandtestpth.py"],
+        # Run the test.py script with the provided wine name
+        result = subprocess.run(
+            [
+                "python",
+                test_script_path,
+                wine_name,
+            ],
             check=True,
-        )  # Run the script
-        return jsonify({"message": "Script executed successfully."}), 200
+            text=True,  # Capture output as text
+            capture_output=True,
+            timeout=60,  # Prevent hanging indefinitely
+        )
+
+        # Attempt to parse the output as JSON
+        predictions = json.loads(result.stdout)
+        return jsonify(predictions), 200
+
+    except subprocess.TimeoutExpired:
+        return jsonify({"error": "Script execution timed out."}), 500
+    except subprocess.CalledProcessError as e:
+        # Attempt to parse the error output as JSON
+        try:
+            error_output = json.loads(e.stderr)
+            return jsonify({"error": error_output.get("error", "Script failed.")}), 500
+        except json.JSONDecodeError:
+            return jsonify({"error": f"Script error: {e.stderr}"}), 500
+    except json.JSONDecodeError:
+        return jsonify({"error": "Failed to decode JSON from script output."}), 500
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/predict", methods=["GET"])
-def predict():
-    X_test_tensor = torch.tensor(X_test.values, dtype=torch.float32)
-
-    with torch.no_grad():
-        y_pred = model(X_test_tensor)
-        predicted_classes = torch.argmax(y_pred, dim=1).numpy()
-
-    predicted_class_names = label_encoder.inverse_transform(predicted_classes)
-    modal_class = Counter(predicted_class_names).most_common(1)[0][0]
-
-    return jsonify(
-        {"predictions": predicted_class_names.tolist(), "modal_class": modal_class}
-    )
-
-
 if __name__ == "__main__":
-    app.run(debug=True)
+    # It's recommended to run Flask with a production-ready server in production
+    app.run(host="0.0.0.0", port=5000, debug=True)
