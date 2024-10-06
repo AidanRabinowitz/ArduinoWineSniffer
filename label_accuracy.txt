@@ -1,1 +1,1 @@
-Label Accuracy for 'Moscato': 0.00%
+Label Accuracy for 'Namaqua': 0.00%

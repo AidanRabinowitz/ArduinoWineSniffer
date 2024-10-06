@@ -1,4 +1,3 @@
-from matplotlib import pyplot as plt
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -11,7 +10,7 @@ import pandas as pd
 
 
 class Multiclass(nn.Module):
-    def __init__(self, input_dim, hidden_dim=64, output_dim=3):
+    def __init__(self, input_dim, hidden_dim=64, output_dim=6):
         super(Multiclass, self).__init__()
         self.fc1 = nn.Linear(input_dim, hidden_dim)
         self.relu = nn.ReLU()
@@ -23,6 +22,8 @@ class Multiclass(nn.Module):
         x = self.fc2(x)
         return x
 
+
+def runTrain():
     # Load the dataset
     data = pd.read_csv(
         r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/src/data_analysis_for_NN/data_analysis_for_NN.csv",
@@ -55,11 +56,8 @@ class Multiclass(nn.Module):
     # Encode target labels (wine names) into numerical values
     y_encoded = label_encoder.fit_transform(y)
 
-    # **Determine the number of unique classes from the target column**
+    # Determine the number of unique classes from the target column
     num_classes = len(np.unique(y_encoded))  # Automatically sets output_dim
-
-
-def runTrain():
 
     # Normalize both MQ sensor data and environmental sensor data
     scaler_mq = StandardScaler()
@@ -78,11 +76,11 @@ def runTrain():
     # Save the PCA models for later use
     joblib.dump(
         mq_pca,
-        r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/mq_pca.pkl",
+        "ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/mq_pca.pkl",
     )
     joblib.dump(
         env_pca,
-        r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/env_pca.pkl",
+        "ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/env_pca.pkl",
     )
 
     # Concatenate MQ and environmental features after PCA
@@ -91,21 +89,21 @@ def runTrain():
     # Save the label encoder and scalers for future use
     joblib.dump(
         label_encoder,
-        "C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel/label_encoder.pkl",
+        "ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/label_encoder.pkl",
     )
     joblib.dump(
         scaler_mq,
-        "C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel/scaler_mq.pkl",
+        "ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/scaler_mq.pkl",
     )
     joblib.dump(
         scaler_env,
-        "C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel/scaler_env.pkl",
+        "ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/scaler_env.pkl",
     )
 
     # Initialize the model with input size as the number of features from both MQ and env sensors after PCA
     input_dim = X.shape[1]  # Combined feature size after PCA (MQ_PCA + env_PCA)
 
-    # Automatically determine output_dim based on the number of unique classes in the target
+    # Initialize the model
     model = Multiclass(input_dim=input_dim, hidden_dim=64, output_dim=num_classes)
 
     # Define the loss function and optimizer
@@ -113,10 +111,10 @@ def runTrain():
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     # Stratified K-Fold Cross Validation
-    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    skf = StratifiedKFold(n_splits=2, shuffle=True, random_state=42)
 
     # Training loop for K-Fold Cross Validation
-    num_epochs = 1000
+    num_epochs = 100
     highest_train_accuracy = 0.0  # Initialize variable to track highest accuracy
     highest_test_accuracy = 0.0  # Initialize variable to track highest accuracy
 
