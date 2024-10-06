@@ -111,7 +111,7 @@ def runTrain():
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
     # Stratified K-Fold Cross Validation
-    skf = StratifiedKFold(n_splits=2, shuffle=True, random_state=42)
+    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
     # Training loop for K-Fold Cross Validation
     num_epochs = 100

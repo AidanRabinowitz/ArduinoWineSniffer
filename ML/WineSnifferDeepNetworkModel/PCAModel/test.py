@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import joblib
 import numpy as np
-from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.preprocessing import LabelEncoder
 from sklearn.decomposition import PCA
 
 
@@ -22,7 +22,7 @@ class Multiclass(nn.Module):
         return x
 
 
-def runTest(test_csv_path):
+def runTest(test_csv_path, wine_tested):
     # Load the test data
     test_data = pd.read_csv(test_csv_path)
 
@@ -79,7 +79,9 @@ def runTest(test_csv_path):
 
     # Load the trained model
     input_dim = X_test_pca.shape[1]
-    num_classes = len(label_encoder.classes_)
+
+    # Dynamically set output_dim based on the number of unique labels in the dataset
+    num_classes = len(label_encoder.classes_)  # Get the number of unique labels
     model = Multiclass(input_dim=input_dim, hidden_dim=64, output_dim=num_classes)
 
     # Load the saved model state
@@ -94,13 +96,27 @@ def runTest(test_csv_path):
     # Decode the predicted labels
     predicted_class_names = label_encoder.inverse_transform(predicted_classes)
 
-    # Print the predicted labels
+    # Print the predicted labels and count matches with wine_tested
     print("Predicted Labels:")
+    correct_count = 0
     for idx, label in enumerate(predicted_class_names):
         print(f"Sample {idx + 1}: {label}")
+        if wine_tested.lower() in label.lower():
+            correct_count += 1
+
+    # Calculate accuracy as a percentage
+    accuracy_label = (correct_count / len(predicted_class_names)) * 100
+    print(f"Accuracy of matching '{wine_tested}' in labels: {accuracy_label:.2f}%")
+
+    return accuracy_label
 
 
 if __name__ == "__main__":
     # Provide the path to the test CSV file
-    test_csv_path = r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineCSVs/Test/ControlTests/2309/namaqua2309control.csv"  # Update this path
-    runTest(test_csv_path)
+    test_csv_path = r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineCSVs/Test/ControlTests/0410/TallHorse.csv"  # Update this path
+
+    # Ask for the wine being tested
+    wine_tested = "TallHorse"
+
+    # Run the test
+    accuracy = runTest(test_csv_path, wine_tested)
