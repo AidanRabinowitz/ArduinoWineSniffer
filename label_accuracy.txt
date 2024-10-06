@@ -1,1 +1,1 @@
-100.0
+Label Accuracy for 'Moscato': 0.00%

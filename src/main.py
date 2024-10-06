@@ -7,7 +7,9 @@ def process_folder(folder_path, output_file):
     # Initialize the DataCleaner with folder path and output file
     cleaner = DataCleaner(folder_path)
     cleaner.clean_data()  # Call the cleaning function
-    cleaner.save_cleaned_data(output_file)
+    cleaner.save_cleaned_data(
+        output_file,
+    )
 
 
 def main():
