@@ -66,38 +66,40 @@ def runTrain():
     scaler_env = StandardScaler()
     X_env_scaled = scaler_env.fit_transform(X_env)
 
+    # Save the scalers for later use (to apply during testing)
+    joblib.dump(
+        scaler_mq,
+        "ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/scaler_mq.pkl",
+    )
+    joblib.dump(
+        scaler_env,
+        "ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/scaler_env.pkl",
+    )
+
     # Apply PCA to both MQ and environmental sensor data
-    mq_pca = PCA(n_components=3)  # Retain 70% variance
+    mq_pca = PCA(n_components=3)  # Adjust based on variance retention
     X_mq_pca = mq_pca.fit_transform(X_mq_scaled)
 
-    env_pca = PCA(n_components=1)  # Retain 70% variance
+    env_pca = PCA(n_components=1)  # Adjust based on variance retention
     X_env_pca = env_pca.fit_transform(X_env_scaled)
 
     # Save the PCA models for later use
     joblib.dump(
         mq_pca,
-        r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/mq_pca.pkl",
+        "ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/mq_pca.pkl",
     )
     joblib.dump(
         env_pca,
-        r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/env_pca.pkl",
+        "ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/env_pca.pkl",
     )
 
     # Concatenate MQ and environmental features after PCA
     X = np.hstack((X_mq_pca, X_env_pca))
 
-    # Save the label encoder and scalers for future use
+    # Save the label encoder for future use
     joblib.dump(
         label_encoder,
-        r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/label_encoder.pkl",
-    )
-    joblib.dump(
-        scaler_mq,
-        r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/scaler_mq.pkl",
-    )
-    joblib.dump(
-        scaler_env,
-        r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/scaler_env.pkl",
+        "ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/label_encoder.pkl",
     )
 
     # Initialize the model with input size as the number of features from both MQ and env sensors after PCA
