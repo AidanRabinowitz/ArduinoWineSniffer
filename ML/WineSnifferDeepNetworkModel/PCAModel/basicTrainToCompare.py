@@ -60,39 +60,21 @@ def runTrain():
     fold_test_accuracies = []
     num_epochs = 100
 
-    for fold, (train_idx, test_idx) in enumerate(skf.split(X, y_encoded)):
-        print(f"Fold {fold + 1}/{skf.n_splits}")
+    # Split into training and test sets based on K-fold indices
+    X_train, X_test = X[train_idx], X[test_idx]
+    y_train, y_test = y_encoded[train_idx], y_encoded[test_idx]
 
-        # Split into training and test sets based on K-fold indices
-        X_train, X_test = X[train_idx], X[test_idx]
-        y_train, y_test = y_encoded[train_idx], y_encoded[test_idx]
+    model.fit(X_train, y_train)
 
-        for epoch in range(num_epochs):
-            model.fit(X_train, y_train)
+    # Make predictions on the training set and round to nearest integer
+    y_train_pred = np.round(model.predict(X_train))
+    train_accuracy = accuracy_score(y_train, y_train_pred)
 
-            # Make predictions on the training set and round to nearest integer
-            y_train_pred = np.round(model.predict(X_train))
-            train_accuracy = accuracy_score(y_train, y_train_pred)
+    # Make predictions on the test set and round to nearest integer
+    y_test_pred = np.round(model.predict(X_test))
+    test_accuracy = accuracy_score(y_test, y_test_pred)
 
-            # Make predictions on the test set and round to nearest integer
-            y_test_pred = np.round(model.predict(X_test))
-            test_accuracy = accuracy_score(y_test, y_test_pred)
-
-            if (epoch + 1) % 100 == 0:  # Print accuracy every 100 epochs
-                print(
-                    f"Epoch {epoch + 1}/{num_epochs}, Train Accuracy = {train_accuracy * 100:.2f}%, Test Accuracy = {test_accuracy * 100:.2f}%"
-                )
-
-        fold_train_accuracies.append(train_accuracy)
-        fold_test_accuracies.append(test_accuracy)
-
-        print(
-            f"Fold {fold + 1}: Final Train Accuracy = {train_accuracy * 100:.2f}%, Final Test Accuracy = {test_accuracy * 100:.2f}%"
-        )
-
-    # Print average accuracy across all folds
-    print(f"Average Train Accuracy: {np.mean(fold_train_accuracies) * 100:.2f}%")
-    print(f"Average Test Accuracy: {np.mean(fold_test_accuracies) * 100:.2f}%")
+    print("Test Accuracy", test_accuracy)
 
 
 if __name__ == "__main__":

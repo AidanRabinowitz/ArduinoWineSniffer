@@ -7,6 +7,7 @@ from sklearn.model_selection import StratifiedKFold
 import joblib
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt  # Import matplotlib for plotting
 
 
 class Multiclass(nn.Module):
@@ -114,7 +115,7 @@ def runTrain():
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
     # Training loop for K-Fold Cross Validation
-    num_epochs = 100
+    num_epochs = 1000
     highest_train_accuracy = 0.0  # Initialize variable to track highest accuracy
     highest_test_accuracy = 0.0  # Initialize variable to track highest accuracy
 
@@ -182,6 +183,25 @@ def runTrain():
 
     # Save the trained model
     torch.save(model.state_dict(), "trained_model.pth")
+
+    # Plot the training and test accuracy for each fold
+    plt.figure(figsize=(12, 8))
+    for fold in range(skf.n_splits):
+        plt.plot(fold_train_accuracies[fold], label=f"Fold {fold+1} Train Accuracy")
+        plt.plot(
+            fold_test_accuracies[fold],
+            label=f"Fold {fold+1} Test Accuracy",
+            linestyle="--",
+        )
+    plt.title(
+        "Train and Test Accuracy per Fold", fontsize=30
+    )  # Increase title font size
+    plt.xlabel("Epoch (x1000)", fontsize=20)  # Increase x-axis label font size
+    plt.ylabel("Accuracy", fontsize=20)  # Increase y-axis label font size
+    plt.legend(fontsize=18)  # Increase legend font size
+    plt.xticks(fontsize=18)  # Increase x-tick labels font size
+    plt.yticks(fontsize=18)  # Increase y-tick labels font size
+    plt.show()
 
 
 if __name__ == "__main__":
