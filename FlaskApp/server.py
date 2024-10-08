@@ -1,3 +1,4 @@
+# server.py
 from flask import Flask, jsonify, request
 import subprocess
 import json
@@ -5,7 +6,7 @@ from flask_cors import CORS
 import os
 
 app = Flask(__name__)
-CORS(app)
+CORS(app)  # Enable CORS for all routes
 
 
 @app.route("/", methods=["GET"])
@@ -22,10 +23,9 @@ def run_test():
         return jsonify({"error": "Wine name is required."}), 400
 
     # Define the path to test.py
-    test_script_path = os.path.join(
-        "C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel",
-        "test.py",
-    )
+    # Adjust the path to where your test.py is located
+    test_script_dir = "C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel"
+    test_script_path = os.path.join(test_script_dir, "test.py")
 
     # Check if test.py exists
     if not os.path.isfile(test_script_path):
@@ -34,19 +34,21 @@ def run_test():
     try:
         # Run the test.py script with the provided wine name
         result = subprocess.run(
-            [
-                "python",
-                test_script_path,
-                wine_name,
-            ],
+            ["python", test_script_path, wine_name],
             check=True,
             text=True,  # Capture output as text
             capture_output=True,
             timeout=60,  # Prevent hanging indefinitely
+            cwd=test_script_dir,  # Set the working directory to test.py's directory
         )
 
         # Attempt to parse the output as JSON
         predictions = json.loads(result.stdout)
+
+        # Check if the output contains an error
+        if "error" in predictions:
+            return jsonify({"error": predictions["error"]}), 500
+
         return jsonify(predictions), 200
 
     except subprocess.TimeoutExpired:
@@ -65,5 +67,5 @@ def run_test():
 
 
 if __name__ == "__main__":
-    # It's recommended to run Flask with a production-ready server in production
+    # It's recommended to use a production-ready server (like Gunicorn) in production
     app.run(host="0.0.0.0", port=5000, debug=True)

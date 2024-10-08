@@ -92,7 +92,7 @@ if __name__ == "__main__":
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
     # Prepare model training parameters
-    n_epochs = 10
+    n_epochs = 1
 
     best_acc = -np.inf
     best_weights = None

@@ -12,7 +12,9 @@ def process_folder(folder_path, output_file):
 
 def main():
     folder_path = "src/Data"  # Path to the folder containing CSV files
-    output_file = "src/cleaned_data.csv"  # Path where cleaned data will be saved
+    output_file = (
+        "src/cleaned_data_allwines.csv"  # Path where cleaned data will be saved
+    )
 
     # Process the folder to clean data
     process_folder(folder_path, output_file)
