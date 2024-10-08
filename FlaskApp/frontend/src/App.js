@@ -1,8 +1,7 @@
-// app.js
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import LoadingScreen from './Components/LoadingScreen'; 
+import LoadingScreen from './Components/LoadingScreen';
 
 const Home = () => {
     const navigate = useNavigate();
@@ -20,7 +19,6 @@ const Home = () => {
         setError('');
         try {
             const response = await axios.post('http://127.0.0.1:5000/run-test', { wine_name: wineName });
-            // Assuming the response contains predictions and accuracy
             if (response.data) {
                 navigate('/predict', { state: { predictions: response.data.predictions, label_accuracy: response.data.label_accuracy } });
             }
@@ -32,16 +30,44 @@ const Home = () => {
         }
     };
 
-    // If loading, return the LoadingScreen
     if (loading) {
         return <LoadingScreen />;
     }
 
-    // Otherwise, return the main UI
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-400 via-pink-500 to-red-500">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 relative">
+            {/* Embed GIF with clickable custom URL overlay */}
+            <div className="absolute top-0 left-0 m-4 w-[150px] h-[150px]">
+            <iframe
+                    src="https://giphy.com/embed/1hBYNPkf4d3e5cnl1Y"
+                    width="150"
+                    height="150"
+                    style={{ border: 'none' }}
+                    frameBorder="0"
+                    className="giphy-embed"
+                    allowFullScreen
+                ></iframe>
+
+                {/* Transparent overlay for custom URL click */}
+                <a
+                    href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="absolute top-0 left-0 w-full h-full"
+                    style={{ zIndex: 10 }}
+                ></a>
+            </div>
+
+
+            {/* Main content */}
             <div className="bg-white rounded-lg shadow-lg p-8 max-w-lg w-full text-center">
-                <h1 className="text-3xl font-bold text-gray-800 mb-4">Smell Wine</h1>
+                {/* Heading and paragraph */}
+                <h1 className="text-3xl font-bold text-gray-800 mb-4">Smart Wine Sniffer</h1>
+                <p className="text-gray-600 mb-6">
+                    This innovative robot has been trained on a dataset of wine scents collected over different days, enabling it to recognize and label various wines purely from their scent.
+                </p>
+
+                {/* Form input and button */}
                 <input
                     type="text"
                     value={wineName}
@@ -69,7 +95,6 @@ const Predict = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    // Access state passed from navigation
     React.useEffect(() => {
         if (location.state && location.state.predictions) {
             const { predictions, label_accuracy } = location.state;
@@ -84,7 +109,7 @@ const Predict = () => {
     };
 
     if (loading) {
-        return <LoadingScreen />; // Show loading screen while fetching predictions
+        return <LoadingScreen />;
     }
 
     return (
