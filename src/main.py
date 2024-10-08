@@ -6,8 +6,8 @@ from deep_learning import DeepLearning
 def process_folder(folder_path, output_file):
     # Initialize the DataCleaner with folder path and output file
     cleaner = DataCleaner(folder_path)
-    cleaner.clean_data()  # Call the cleaning function
-    cleaner.save_cleaned_data(output_file)
+    df = cleaner.clean_data()  # Call the cleaning function
+    cleaner.save_cleaned_data(df, output_file)
 
 
 def main():
@@ -15,7 +15,7 @@ def main():
     output_file = "src/cleaned_data.csv"  # Path where cleaned data will be saved
 
     # Process the folder to clean data
-    process_folder(folder_path)
+    process_folder(folder_path, output_file)
 
     # Now pass the cleaned data to the DeepLearning class
     model = DeepLearning(output_file)
