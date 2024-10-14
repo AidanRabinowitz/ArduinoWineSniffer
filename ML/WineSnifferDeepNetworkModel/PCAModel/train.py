@@ -1,157 +1,178 @@
-import copy
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import tqdm
-from sklearn.decomposition import PCA
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
-from torch.utils.data import DataLoader, TensorDataset
-
-# Train data
-data = pd.read_csv(
-    r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/cleaned_data.csv",
-    header=0,
-)
-
-feature_columns = [
-    "MQ135",
-    "MQ2",
-    "MQ3",
-    "MQ4",
-    "MQ5",
-    "MQ6",
-    "MQ7",
-    "MQ8",
-    "MQ9",
-]
-target_column = "Target"
-
-# Prepare features and targets
-X = data[feature_columns]
-y = data[target_column]
-
-# Use LabelEncoder for target encoding (class labels instead of one-hot encoding)
-label_encoder = LabelEncoder()
-y = label_encoder.fit_transform(y)
-
-# Apply PCA to reduce dimensionality
-pca = PCA(n_components=2)  # Modify n_components based on desired variance retention
-X_pca = pca.fit_transform(X)
-
-# Convert to PyTorch tensors
-X_pca = torch.tensor(X_pca, dtype=torch.float32)
-y = torch.tensor(
-    y, dtype=torch.long
-)  # Use long for class indices, required by CrossEntropyLoss
-
-# Split data
-X_train, X_test, y_train, y_test = train_test_split(
-    X_pca, y, train_size=0.8, shuffle=True
-)
-
-# Save label encoder and PCA for later use
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.model_selection import KFold
+from sklearn.metrics import classification_report
+import numpy as np
+import pandas as pd
 import joblib
-
-joblib.dump(label_encoder, "label_encoder.pkl")
-joblib.dump(pca, "pca_model.pkl")  # Save PCA model for future use
-
-# Define the number of output classes
-num_outputs = len(np.unique(y))  # Number of classes
-
-# Set device for GPU usage
-device = torch.device("cuda")
+import matplotlib.pyplot as plt
 
 
 class Multiclass(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.hidden = nn.Linear(X_train.shape[1], 32)
-        self.act = nn.ReLU()
-        self.output = nn.Linear(32, num_outputs)
+    def __init__(self, input_dim, hidden_dim=16, output_dim=6):
+        super(Multiclass, self).__init__()
+        self.fc1 = nn.Linear(input_dim, hidden_dim)
+        self.relu = nn.ReLU()
+        self.fc2 = nn.Linear(hidden_dim, output_dim)
 
     def forward(self, x):
-        x = self.act(self.hidden(x))
-        x = self.output(x)
+        x = self.fc1(x)
+        x = self.relu(x)
+        x = self.fc2(x)
         return x
 
 
-if __name__ == "__main__":
+def runTrain():
+    # Load the dataset
+    data = pd.read_csv(
+        r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/src/data_analysis_for_NN/data_analysis_for_NN.csv",
+        header=0,
+    )
 
-    # Initialize the model, loss function, and optimizer
-    model = Multiclass().to(device)  # Move model to GPU
-    loss_fn = nn.CrossEntropyLoss()
+    # Feature columns for MQ and environmental sensors
+    feature_columns = [
+        "MQ135",
+        "MQ2",
+        "MQ3",
+        "MQ4",
+        "MQ5",
+        "MQ6",
+        "MQ7",
+        "MQ8",
+        "MQ9",
+        "BMPTemperature",
+        "Pressure(Pa)",
+        "DHTTemperature",
+        "Humidity",
+    ]
+    target_column = "Target"
+
+    # Separate features and target
+    X = data[feature_columns].values
+    y = data[target_column].values
+
+    # Label encoding for the target
+    label_encoder = LabelEncoder()
+    y_encoded = label_encoder.fit_transform(y)
+
+    # Save the label encoder
+    joblib.dump(
+        label_encoder,
+        r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/label_encoder.pkl",
+    )
+
+    # Determine the number of unique classes
+    num_classes = len(np.unique(y_encoded))
+
+    # Initialize the model
+    input_dim = X.shape[1]  # 13 features
+    model = Multiclass(input_dim=input_dim, hidden_dim=64, output_dim=num_classes)
+
+    # Loss function and optimizer
+    criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-    # Prepare DataLoader for batching
-    batch_size = 32
-    train_dataset = TensorDataset(X_train, y_train)
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    # K-Fold Cross Validation (no stratification)
+    kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
-    # Prepare model training parameters
-    n_epochs = 1
+    num_epochs = 1000
+    highest_train_accuracy = 0.0
+    highest_test_accuracy = 0.0
 
-    best_acc = -np.inf
-    best_weights = None
-    train_loss_hist = []
-    train_acc_hist = []
-    test_loss_hist = []
-    test_acc_hist = []
+    fold_train_accuracies = []
+    fold_test_accuracies = []
 
-    # Training loop
-    for epoch in range(n_epochs):
-        epoch_loss = []
-        epoch_acc = []
+    for fold, (train_idx, test_idx) in enumerate(kf.split(X)):
+        print(f"Fold {fold + 1}/{kf.n_splits}")
 
-        model.train()
-        with tqdm.trange(len(train_loader), unit="batch", mininterval=0) as bar:
-            bar.set_description(f"Epoch {epoch}")
-            for X_batch, y_batch in train_loader:
-                # Move batch to GPU
-                X_batch, y_batch = X_batch.to(device), y_batch.to(device)
+        # Re-initialize model and optimizer inside each fold
+        model = Multiclass(input_dim=input_dim, hidden_dim=64, output_dim=num_classes)
+        optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-                # Forward pass
-                y_pred = model(X_batch)
-                loss = loss_fn(y_pred, y_batch)
+        # Split into train and test sets
+        X_train, X_test = X[train_idx], X[test_idx]
+        y_train, y_test = y_encoded[train_idx], y_encoded[test_idx]
 
-                # Backward pass
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
+        # Scale the data within the fold
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
 
-                # Compute and store metrics
-                acc = (torch.argmax(y_pred, 1) == y_batch).float().mean()
-                epoch_loss.append(float(loss))
-                epoch_acc.append(float(acc))
-                bar.set_postfix(loss=float(loss), acc=float(acc))
+        # Convert to tensors
+        X_train_tensor = torch.tensor(X_train_scaled, dtype=torch.float32)
+        X_test_tensor = torch.tensor(X_test_scaled, dtype=torch.float32)
+        y_train_tensor = torch.tensor(y_train, dtype=torch.long)
+        y_test_tensor = torch.tensor(y_test, dtype=torch.long)
 
-        # Evaluation on test set
-        model.eval()
-        with torch.no_grad():
-            y_pred = model(X_test.to(device))  # Move test data to GPU
-            ce = loss_fn(y_pred, y_test.to(device))  # Move test labels to GPU
-            acc = (torch.argmax(y_pred, 1) == y_test.to(device)).float().mean()
+        train_accuracies = []
+        test_accuracies = []
 
-        train_loss_hist.append(np.mean(epoch_loss))
-        train_acc_hist.append(np.mean(epoch_acc))
-        test_loss_hist.append(float(ce))
-        test_acc_hist.append(float(acc))
+        for epoch in range(num_epochs):
+            # Forward pass
+            outputs = model(X_train_tensor)
+            loss = criterion(outputs, y_train_tensor)
 
-        if acc > best_acc:
-            best_acc = acc
-            best_weights = copy.deepcopy(model.state_dict())
+            # Backward pass and optimization
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
-        print(
-            f"Epoch {epoch} validation: Cross-entropy={float(ce):.2f}, Accuracy={float(acc)*100:.1f}%"
+            # Training accuracy
+            _, predicted_train = torch.max(outputs, 1)
+            correct_train = (predicted_train == y_train_tensor).sum().item()
+            train_accuracy = correct_train / y_train_tensor.size(0)
+            train_accuracies.append(train_accuracy)
+
+            # Test accuracy
+            with torch.no_grad():
+                outputs_test = model(X_test_tensor)
+                _, predicted_test = torch.max(outputs_test, 1)
+                correct_test = (predicted_test == y_test_tensor).sum().item()
+                test_accuracy = correct_test / y_test_tensor.size(0)
+                test_accuracies.append(test_accuracy)
+
+            # Track highest accuracy
+            highest_train_accuracy = max(highest_train_accuracy, train_accuracy)
+            highest_test_accuracy = max(highest_test_accuracy, test_accuracy)
+
+            if (epoch + 1) % 10 == 0:
+                print(
+                    f"Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}, "
+                    f"Train Accuracy: {train_accuracy:.4f}, Test Accuracy: {test_accuracy:.4f}"
+                )
+
+        fold_train_accuracies.append(train_accuracies)
+        fold_test_accuracies.append(test_accuracies)
+
+        # Print classification report
+        print(f"\nClassification Report (Fold {fold + 1}):")
+        print(classification_report(y_test, predicted_test))
+
+    print(f"Highest Train Accuracy: {highest_train_accuracy:.4f}")
+    print(f"Highest Test Accuracy: {highest_test_accuracy:.4f}")
+
+    # Save the trained model
+    torch.save(model.state_dict(), "trained_model.pth")
+
+    # Plot train and test accuracy per fold
+    plt.figure(figsize=(12, 8))
+    for fold in range(kf.n_splits):
+        plt.plot(fold_train_accuracies[fold], label=f"Fold {fold + 1} Train Accuracy")
+        plt.plot(
+            fold_test_accuracies[fold],
+            label=f"Fold {fold + 1} Test Accuracy",
+            linestyle="--",
         )
+    plt.title("Train and Test Accuracy per Fold", fontsize=30)
+    plt.xlabel("Epoch (x1000)", fontsize=20)
+    plt.ylabel("Accuracy", fontsize=20)
+    plt.legend(fontsize=18)
+    plt.xticks(fontsize=18)
+    plt.yticks(fontsize=18)
+    plt.show()
 
-    # Restore the best model
-    model.load_state_dict(best_weights)
 
-    # Save the trained model with PCA applied
-    torch.save(model.state_dict(), "pca_wine_model.pth")
-
-    print(f"Highest achieved accuracy: {best_acc * 100:.2f}%")
+if __name__ == "__main__":
+    runTrain()
