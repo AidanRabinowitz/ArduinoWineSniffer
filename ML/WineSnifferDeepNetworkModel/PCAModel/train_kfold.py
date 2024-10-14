@@ -27,7 +27,7 @@ class Multiclass(nn.Module):
 def runTrain():
     # Load the dataset
     data = pd.read_csv(
-        r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/src/data_analysis_for_NN/data_analysis_for_NN.csv",
+        r"ArduinoWineSniffer\src\data_analysis_for_NN\data_analysis_for_NN.csv",
         header=0,
     )
 
@@ -43,7 +43,8 @@ def runTrain():
         "MQ8",
         "MQ9",
     ]
-    env_sensors = ["BMPTemperature", "Pressure(Pa)", "DHTTemperature", "Humidity"]
+    env_sensors = ["BMPTemperature",
+                   "Pressure(Pa)", "DHTTemperature", "Humidity"]
     target_column = "Target"
 
     # Label encoding for the target
@@ -77,11 +78,11 @@ def runTrain():
     # Save the PCA models for later use
     joblib.dump(
         mq_pca,
-        r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/mq_pca.pkl",
+        r"ArduinoWineSniffer\PCAModel\pklfiles\mq_pca.pkl",
     )
     joblib.dump(
         env_pca,
-        r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/env_pca.pkl",
+        r"ArduinoWineSniffer\PCAModel\pklfiles\mq_pca.pkl",
     )
 
     # Concatenate MQ and environmental features after PCA
@@ -90,22 +91,24 @@ def runTrain():
     # Save the label encoder and scalers for future use
     joblib.dump(
         label_encoder,
-        r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/label_encoder.pkl",
+        r"ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/label_encoder.pkl",
     )
     joblib.dump(
         scaler_mq,
-        r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/scaler_mq.pkl",
+        r"ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/scaler_mq.pkl",
     )
     joblib.dump(
         scaler_env,
-        r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/scaler_env.pkl",
+        r"ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/scaler_env.pkl",
     )
 
     # Initialize the model with input size as the number of features from both MQ and env sensors after PCA
-    input_dim = X.shape[1]  # Combined feature size after PCA (MQ_PCA + env_PCA)
+    # Combined feature size after PCA (MQ_PCA + env_PCA)
+    input_dim = X.shape[1]
 
     # Initialize the model
-    model = Multiclass(input_dim=input_dim, hidden_dim=64, output_dim=num_classes)
+    model = Multiclass(input_dim=input_dim, hidden_dim=64,
+                       output_dim=num_classes)
 
     # Define the loss function and optimizer
     criterion = nn.CrossEntropyLoss()

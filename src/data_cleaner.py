@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
+from sklearn.preprocessing import StandardScaler
 
 
 class DataCleaner:
@@ -140,3 +141,21 @@ class DataCleaner:
 
             plt.legend(fontsize=12)  # Set legend font size
             plt.show()
+
+    def scaleDataFrame(df):
+        # Must save timestamp and Target before running
+        scaler = StandardScaler()
+
+        df = pd.DataFrame()
+
+        # df = cleanedData.drop(columns=['yyyy-mm-dd timestamp', 'Target']
+        #                       )  # Drop the timestamp column
+        # # Features excluding 'Target'
+
+        scaler.fit_transform(df)
+
+        scaler.fit(df)
+        scaled_df = pd.DataFrame(scaler.transform(df), columns=df.columns)
+
+        print("All features are now scaled")
+        return df
