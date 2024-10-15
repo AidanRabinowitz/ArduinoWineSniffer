@@ -41,7 +41,7 @@ class Multiclass(nn.Module):
 # Load the trained model
 input_dim = 3 + 1  # Adjust this based on your PCA output dimensions
 model = Multiclass(input_dim=input_dim)
-model.load_state_dict(torch.load("trained_model.pth", weights_only=True))
+model.load_state_dict(torch.load("final_trained_model.pth", weights_only=True))
 model.eval()
 
 # Load the preprocessing pipeline and label encoder
@@ -77,7 +77,5 @@ def predict_labels(input_csv):
 
 
 if __name__ == "__main__":
-    input_csv = (
-        "ML/WineCSVs/Test/Test2309/BlackTieTest.csv"  # Replace with your input CSV path
-    )
+    input_csv = "ML/WineCSVs/Test/Test2309/silvermyntestforpcatest.csv"  # Replace with your input CSV path
     predict_labels(input_csv)

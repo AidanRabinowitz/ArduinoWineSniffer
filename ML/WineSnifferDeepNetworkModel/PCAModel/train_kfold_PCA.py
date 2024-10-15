@@ -4,7 +4,7 @@ import torch.optim as optim
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.decomposition import PCA
 from sklearn.model_selection import StratifiedKFold
-from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.base import TransformerMixin
 import joblib
@@ -64,8 +64,6 @@ def runTrain():
 
     # Prepare label encoder for the target
     label_encoder = LabelEncoder()
-
-    # Encode target labels into numerical values
     y = data[target_column]
     y_encoded = label_encoder.fit_transform(y)
 
@@ -127,8 +125,8 @@ def runTrain():
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
     num_epochs = 1000
-    highest_train_accuracy = 0.0
-    highest_test_accuracy = 0.0
+    best_model_state = None
+    highest_test_accuracy = 0.0  # Track highest test accuracy
 
     fold_train_accuracies = []
     fold_test_accuracies = []
@@ -177,10 +175,9 @@ def runTrain():
                 test_accuracy = correct_test / y_test_tensor.size(0)
                 test_accuracies.append(test_accuracy)
 
-            if train_accuracy > highest_train_accuracy:
-                highest_train_accuracy = train_accuracy
             if test_accuracy > highest_test_accuracy:
                 highest_test_accuracy = test_accuracy
+                best_model_state = model.state_dict().copy()  # Save best model
 
             if (epoch + 1) % 10 == 0:
                 print(
@@ -191,14 +188,39 @@ def runTrain():
         fold_train_accuracies.append(train_accuracies)
         fold_test_accuracies.append(test_accuracies)
 
-    # Print the highest accuracy achieved during training
-    print(f"Highest Train Accuracy: {highest_train_accuracy:.4f}")
-    print(f"Highest Test  Accuracy: {highest_test_accuracy:.4f}")
+    # Retrain the model on the entire dataset using the best model
+    print(
+        f"Retraining on entire dataset using the best model parameters from cross-validation"
+    )
+    model.load_state_dict(best_model_state)  # Load the best model's state
 
-    # Save the trained model
-    torch.save(model.state_dict(), "trained_model.pth")
+    # Convert full dataset to PyTorch tensors
+    X_full_tensor = torch.tensor(X_preprocessed, dtype=torch.float32)
+    y_full_tensor = torch.tensor(y_encoded, dtype=torch.long)
 
-    # Plot accuracy results
+    for epoch in range(num_epochs):
+        outputs = model(X_full_tensor)
+        loss = criterion(outputs, y_full_tensor)
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        # Calculate training accuracy on the full dataset
+        _, predicted_full = torch.max(outputs, 1)
+        correct_full = (predicted_full == y_full_tensor).sum().item()
+        full_train_accuracy = correct_full / y_full_tensor.size(0)
+
+        if (epoch + 1) % 10 == 0:
+            print(
+                f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}, Full Train Accuracy: {full_train_accuracy:.4f}"
+            )
+
+    # Save the final model trained on the entire dataset
+    torch.save(model.state_dict(), "final_trained_model.pth")
+    print(f"Final model saved as 'final_trained_model.pth'")
+
+    # Plot accuracy results from cross-validation
     plt.figure(figsize=(12, 8))
     for fold in range(skf.n_splits):
         plt.plot(fold_train_accuracies[fold], label=f"Fold {fold+1} Train Accuracy")

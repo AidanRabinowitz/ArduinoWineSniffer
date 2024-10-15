@@ -13,17 +13,17 @@ def save_model(nb, label_encoder, scaler):
     # Save the Naive Bayes model
     joblib.dump(
         nb,
-        "ML/WineSnifferDeepNetworkModel/PCAModel/naive_bayes_model.pkl",
+        "ML/WineSnifferDeepNetworkModel/PCAModel/shallowPKLFiles/naive_bayes_model.pkl",
     )
     # Save the label encoder
     joblib.dump(
         label_encoder,
-        "ML/WineSnifferDeepNetworkModel/PCAModel/label_encoder.pkl",
+        "ML/WineSnifferDeepNetworkModel/PCAModel/shallowPKLFiles/label_encoder.pkl",
     )
     # Save the scaler
     joblib.dump(
         scaler,
-        "ML/WineSnifferDeepNetworkModel/PCAModel/standard_scaler.pkl",
+        "ML/WineSnifferDeepNetworkModel/PCAModel/shallowPKLFiles/standard_scaler.pkl",
     )
     print("Model, label encoder, and scaler saved successfully.")
 
