@@ -23,11 +23,11 @@ def save_data_to_file(data, filename):
             "MQ5",
             "MQ4",
             "MQ7",
-            "MQ3",  # COM3
+            "MQ3",
             "MQ8",
             "MQ2",
             "MQ135",
-            "MQ9",  # COM5
+            "MQ9",
             "BMPTemperature",
             "Pressure(Pa)",
             "DHTTemperature",
@@ -47,15 +47,15 @@ def parse_sensor_data(line):
     try:
         sensors = line.split(",")
         data_dict = {
-            "MQ6": sensors[0].split(":")[1],  # COM3 A0
-            "MQ5": sensors[1].split(":")[1],  # COM3 A1
-            "MQ4": sensors[2].split(":")[1],  # COM3 A2
-            "MQ7": sensors[3].split(":")[1],  # COM3 A3
-            "MQ3": sensors[4].split(":")[1],  # COM3 A4
-            "MQ8": sensors[5].split(":")[1],  # COM5 A5
-            "MQ2": sensors[6].split(":")[1],  # COM5 A6
-            "MQ135": sensors[7].split(":")[1],  # COM5 A7
-            "MQ9": sensors[8].split(":")[1],  # COM5 A8
+            "MQ6": sensors[0].split(":")[1],
+            "MQ5": sensors[1].split(":")[1],
+            "MQ4": sensors[2].split(":")[1],
+            "MQ7": sensors[3].split(":")[1],
+            "MQ3": sensors[4].split(":")[1],
+            "MQ8": sensors[5].split(":")[1],
+            "MQ2": sensors[6].split(":")[1],
+            "MQ135": sensors[7].split(":")[1],
+            "MQ9": sensors[8].split(":")[1],
             "BMPTemperature": sensors[9].split(":")[1],  # BMP temperature
             "Pressure(Pa)": sensors[10].split(":")[1],  # Pressure
             "DHTTemperature": sensors[11].split(":")[1],  # DHT temperature
@@ -67,7 +67,13 @@ def parse_sensor_data(line):
         return None
 
 
-def read_serial_data(port="COM6", baudrate=115200, save_interval=5000, filename="final_data.csv", max_entries=15000):
+def read_serial_data(
+    port="COM6",
+    baudrate=115200,
+    save_interval=5000,
+    filename="Shir_Shiraz_2021_R2.csv",
+    max_entries=15000,
+):
     global MQSensorData  # Use global variable
     ser = serial.Serial(port, baudrate)
     entry_count = 0  # Counter for entries to manage save interval
@@ -79,8 +85,7 @@ def read_serial_data(port="COM6", baudrate=115200, save_interval=5000, filename=
                 data = parse_sensor_data(line)
 
                 if data:
-                    timestamp = time.strftime(
-                        "%Y-%m-%d %H:%M:%S")  # Get current time
+                    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")  # Get current time
                     sensor_data = {"yyyy-mm-dd timestamp": timestamp}
                     sensor_data.update(data)
 
@@ -113,8 +118,7 @@ def read_serial_data(port="COM6", baudrate=115200, save_interval=5000, filename=
 
 if __name__ == "__main__":
     COM_port = "COM" + input("Enter the COM port number: ")
-    filename = input(
-        "Enter the filename for the final output (e.g., final_data.csv): ")
+    filename = input("Enter the filename for the final output (e.g., final_data.csv): ")
 
     # Load existing data if any
     MQSensorData = load_data_from_file(filename)
