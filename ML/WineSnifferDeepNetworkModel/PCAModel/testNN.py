@@ -25,7 +25,7 @@ class DataFrameSelector(TransformerMixin):
 
 # Define the Multiclass model
 class Multiclass(nn.Module):
-    def __init__(self, input_dim, hidden_dim=64, output_dim=7):
+    def __init__(self, input_dim, hidden_dim=64, output_dim=8):
         super(Multiclass, self).__init__()
         self.fc1 = nn.Linear(input_dim, hidden_dim)
         self.relu = nn.ReLU()
@@ -77,5 +77,7 @@ def predict_labels(input_csv):
 
 
 if __name__ == "__main__":
-    input_csv = "ML/WineCSVs/Test/Test2309/silvermyntestforpcatest.csv"  # Replace with your input CSV path
+    input_csv = (
+        "ML/WineSnifferDeepNetworkModel/testCSV.csv"  # Replace with your input CSV path
+    )
     predict_labels(input_csv)

@@ -43,7 +43,7 @@ class DataFrameSelector(TransformerMixin):
 def runTrain():
     # Load the dataset
     data = pd.read_csv(
-        "src/data_analysis_for_NN/6WinesUntil3009_combinedCleaned.csv",
+        "ML/WineCSVs/Train/cleanedCombinedTrainSet/combined_cleaned_data.csv",
         header=0,
     )
 
