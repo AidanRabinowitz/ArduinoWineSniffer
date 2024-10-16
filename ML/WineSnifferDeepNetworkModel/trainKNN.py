@@ -30,7 +30,9 @@ def save_model(knn, label_encoder, scaler):
 
 def run_knn():
     # Load your wine dataset
-    file_path = "src/data_analysis_for_NN/6WinesUntil3009_combinedCleaned.csv"
+    file_path = (
+        "ML/WineCSVs/Train/SimilarDataset/SimilarDataset_combined_cleaned_data.csv"
+    )
     try:
         data = pd.read_csv(file_path, header=0)
     except FileNotFoundError:

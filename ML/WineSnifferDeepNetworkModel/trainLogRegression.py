@@ -31,7 +31,7 @@ def save_model(lm, label_encoder, scaler):
 
 def run_logistic_regression():
     # Load your wine dataset
-    file_path = "ML/WineCSVs/Train/cleanedCombinedTrainSet/combined_cleaned_data.csv"  # Adjust path if necessary
+    file_path = "ML/WineCSVs/Train/OldWinesDataset/OldWinesDataset_combined_cleaned_data.csv"  # Adjust path if necessary
     try:
         data = pd.read_csv(file_path, header=0)
     except FileNotFoundError:

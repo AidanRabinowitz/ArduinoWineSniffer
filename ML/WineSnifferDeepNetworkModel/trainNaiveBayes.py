@@ -30,7 +30,7 @@ def save_model(nb, label_encoder, scaler):
 
 def run_naive_bayes():
     # Load your wine dataset
-    file_path = "ML/WineCSVs/Train/cleanedCombinedTrainSet/combined_cleaned_data.csv"  # Adjust path if necessary
+    file_path = "ML/WineCSVs/Train/SimilarDataset/SimilarDataset_combined_cleaned_data.csv"  # Adjust path if necessary
     try:
         data = pd.read_csv(file_path, header=0)
     except FileNotFoundError:

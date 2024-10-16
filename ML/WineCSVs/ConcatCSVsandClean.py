@@ -95,5 +95,7 @@ def process_folder(input_folder, output_file, shuffle=False):
 
 
 input_folder = "ML/WineCSVs/Train/FinalTrainSet"
-output_file = "ML/WineCSVs/Train/cleanedCombinedTrainSet/combined_cleaned_data.csv"
+output_file = (
+    "ML/WineCSVs/Train/DistinctDataset/DistinctDataset_combined_cleaned_data.csv"
+)
 process_folder(input_folder, output_file, shuffle=True)  # Shuffle the data
