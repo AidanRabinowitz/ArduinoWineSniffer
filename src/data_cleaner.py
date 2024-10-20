@@ -139,7 +139,7 @@ class DataCleaner:
             # Adjust label size for both axes
             plt.tick_params(axis='both', labelsize=22)
 
-            plt.legend(fontsize=12)  # Set legend font size
+            plt.legend(fontsize=16)  # Set legend font size
             plt.show()
 
     def scaleDataFrame(df):

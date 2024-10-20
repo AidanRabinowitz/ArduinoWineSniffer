@@ -11,7 +11,8 @@ def process_folder(folder_path, output_file):
 
 
 def main():
-    folder_path = "src/Data"  # Path to the folder containing CSV files
+    # Path to the folder containing CSV files
+    folder_path = "ArduinoWineSniffer/src/Data/2309_data"
     output_file = (
         "src/cleaned_data_allwines.csv"  # Path where cleaned data will be saved
     )
