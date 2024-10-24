@@ -3,12 +3,15 @@ import joblib
 
 
 def load_model_and_predict(feature_data_path):
-    # Load the saved logistic regression model and label encoder
+    # Load the saved logistic regression model, label encoder, and scaler
     model = joblib.load(
         "ML/WineSnifferDeepNetworkModel/PCAModel/logRegressionPKLFiles/logistic_regression_model.pkl"
     )
     label_encoder = joblib.load(
         "ML/WineSnifferDeepNetworkModel/PCAModel/logRegressionPKLFiles/label_encoder.pkl"
+    )
+    scaler = joblib.load(
+        "ML/WineSnifferDeepNetworkModel/PCAModel/logRegressionPKLFiles/standard_scaler.pkl"
     )
 
     # Load the new feature data from a CSV file
@@ -34,8 +37,11 @@ def load_model_and_predict(feature_data_path):
     # Extract the features (unlabeled data)
     X_new = feature_data[feature_columns].values
 
+    # **Apply the same scaler to the new data**
+    X_new_scaled = scaler.transform(X_new)
+
     # Use the loaded model to predict the labels
-    predictions = model.predict(X_new)
+    predictions = model.predict(X_new_scaled)
 
     # Decode the predicted labels back to their original form
     predicted_labels = label_encoder.inverse_transform(predictions)
@@ -50,5 +56,5 @@ def load_model_and_predict(feature_data_path):
 
 if __name__ == "__main__":
     # Replace with the path to your CSV file with unlabeled feature data
-    test_file_path = "ML/WineCSVs/Test/Test2309/TallHorseTest.csv"
+    test_file_path = "ML/WineSnifferDeepNetworkModel/testCSV.csv"
     load_model_and_predict(test_file_path)

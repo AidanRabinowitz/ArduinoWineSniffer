@@ -7,6 +7,7 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.base import TransformerMixin
+from sklearn.metrics import f1_score
 import joblib
 import numpy as np
 import pandas as pd
@@ -43,7 +44,7 @@ class DataFrameSelector(TransformerMixin):
 def runTrain():
     # Load the dataset
     data = pd.read_csv(
-        "src/data_analysis_for_NN/6WinesUntil3009_combinedCleaned.csv",
+        "ML/WineCSVs/Train/OldWinesDataset/OldWinesDataset_combined_cleaned_data.csv",
         header=0,
     )
 
@@ -130,6 +131,8 @@ def runTrain():
 
     fold_train_accuracies = []
     fold_test_accuracies = []
+    fold_train_f1_scores = []
+    fold_test_f1_scores = []
 
     for fold, (train_idx, test_idx) in enumerate(skf.split(X_preprocessed, y_encoded)):
         print(f"Fold {fold+1}/{skf.n_splits}")
@@ -150,6 +153,8 @@ def runTrain():
 
         train_accuracies = []
         test_accuracies = []
+        train_f1_scores = []
+        test_f1_scores = []
 
         for epoch in range(num_epochs):
             # Forward pass
@@ -161,19 +166,31 @@ def runTrain():
             loss.backward()
             optimizer.step()
 
-            # Calculate training accuracy
+            # Calculate training accuracy and F1-score
             _, predicted_train = torch.max(outputs, 1)
             correct_train = (predicted_train == y_train_tensor).sum().item()
             train_accuracy = correct_train / y_train_tensor.size(0)
+            train_f1 = f1_score(
+                y_train_tensor.cpu().numpy(),
+                predicted_train.cpu().numpy(),
+                average="weighted",
+            )
             train_accuracies.append(train_accuracy)
+            train_f1_scores.append(train_f1)
 
-            # Calculate test accuracy
+            # Calculate test accuracy and F1-score
             with torch.no_grad():
                 outputs_test = model(X_test_tensor)
                 _, predicted_test = torch.max(outputs_test, 1)
                 correct_test = (predicted_test == y_test_tensor).sum().item()
                 test_accuracy = correct_test / y_test_tensor.size(0)
+                test_f1 = f1_score(
+                    y_test_tensor.cpu().numpy(),
+                    predicted_test.cpu().numpy(),
+                    average="weighted",
+                )
                 test_accuracies.append(test_accuracy)
+                test_f1_scores.append(test_f1)
 
             if test_accuracy > highest_test_accuracy:
                 highest_test_accuracy = test_accuracy
@@ -182,11 +199,14 @@ def runTrain():
             if (epoch + 1) % 10 == 0:
                 print(
                     f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}, "
-                    f"Train Accuracy: {train_accuracy:.4f}, Test Accuracy: {test_accuracy:.4f}"
+                    f"Train Accuracy: {train_accuracy:.4f}, Train F1-Score: {train_f1:.4f}, "
+                    f"Test Accuracy: {test_accuracy:.4f}, Test F1-Score: {test_f1:.4f}"
                 )
 
         fold_train_accuracies.append(train_accuracies)
         fold_test_accuracies.append(test_accuracies)
+        fold_train_f1_scores.append(train_f1_scores)
+        fold_test_f1_scores.append(test_f1_scores)
 
     # Retrain the model on the entire dataset using the best model
     print(
@@ -220,7 +240,7 @@ def runTrain():
     torch.save(model.state_dict(), "final_trained_model.pth")
     print(f"Final model saved as 'final_trained_model.pth'")
 
-    # Plot accuracy results from cross-validation
+    # Plot accuracy and F1-score results from cross-validation
     plt.figure(figsize=(12, 8))
     for fold in range(skf.n_splits):
         plt.plot(fold_train_accuracies[fold], label=f"Fold {fold+1} Train Accuracy")
@@ -232,6 +252,20 @@ def runTrain():
     plt.title("Train and Test Accuracy per Fold", fontsize=30)
     plt.xlabel("Epoch", fontsize=20)
     plt.ylabel("Accuracy", fontsize=20)
+    plt.legend(fontsize=18)
+    plt.show()
+
+    plt.figure(figsize=(12, 8))
+    for fold in range(skf.n_splits):
+        plt.plot(fold_train_f1_scores[fold], label=f"Fold {fold+1} Train F1-Score")
+        plt.plot(
+            fold_test_f1_scores[fold],
+            label=f"Fold {fold+1} Test F1-Score",
+            linestyle="--",
+        )
+    plt.title("Train and Test F1-Score per Fold", fontsize=30)
+    plt.xlabel("Epoch", fontsize=20)
+    plt.ylabel("F1-Score", fontsize=20)
     plt.legend(fontsize=18)
     plt.show()
 
