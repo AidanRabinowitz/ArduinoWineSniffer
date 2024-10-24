@@ -27,7 +27,7 @@ class Multiclass(nn.Module):
 def runTrain():
     # Load the dataset
     data = pd.read_csv(
-        r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/src/data_analysis_for_NN/data_analysis_for_NN.csv",
+        r"ArduinoWineSniffer/src/data_analysis_for_NN/data_analysis_for_NN.csv",
         header=0,
     )
 
@@ -60,7 +60,7 @@ def runTrain():
     # Save the label encoder
     joblib.dump(
         label_encoder,
-        r"C:/Users/aidan/codeprojects/ML/ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/label_encoder.pkl",
+        r"ArduinoWineSniffer/ML/WineSnifferDeepNetworkModel/PCAModel/pklfiles/label_encoder.pkl",
     )
 
     # Determine the number of unique classes
@@ -68,7 +68,8 @@ def runTrain():
 
     # Initialize the model
     input_dim = X.shape[1]  # 13 features
-    model = Multiclass(input_dim=input_dim, hidden_dim=64, output_dim=num_classes)
+    model = Multiclass(input_dim=input_dim, hidden_dim=64,
+                       output_dim=num_classes)
 
     # Loss function and optimizer
     criterion = nn.CrossEntropyLoss()
@@ -88,7 +89,8 @@ def runTrain():
         print(f"Fold {fold + 1}/{kf.n_splits}")
 
         # Re-initialize model and optimizer inside each fold
-        model = Multiclass(input_dim=input_dim, hidden_dim=64, output_dim=num_classes)
+        model = Multiclass(input_dim=input_dim,
+                           hidden_dim=64, output_dim=num_classes)
         optimizer = optim.Adam(model.parameters(), lr=0.001)
 
         # Split into train and test sets
@@ -134,7 +136,8 @@ def runTrain():
                 test_accuracies.append(test_accuracy)
 
             # Track highest accuracy
-            highest_train_accuracy = max(highest_train_accuracy, train_accuracy)
+            highest_train_accuracy = max(
+                highest_train_accuracy, train_accuracy)
             highest_test_accuracy = max(highest_test_accuracy, test_accuracy)
 
             if (epoch + 1) % 10 == 0:
@@ -159,7 +162,8 @@ def runTrain():
     # Plot train and test accuracy per fold
     plt.figure(figsize=(12, 8))
     for fold in range(kf.n_splits):
-        plt.plot(fold_train_accuracies[fold], label=f"Fold {fold + 1} Train Accuracy")
+        plt.plot(fold_train_accuracies[fold],
+                 label=f"Fold {fold + 1} Train Accuracy")
         plt.plot(
             fold_test_accuracies[fold],
             label=f"Fold {fold + 1} Test Accuracy",
